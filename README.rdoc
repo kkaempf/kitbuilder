@@ -1,0 +1,17 @@
+= Kitbuilder
+
+* http://github.com/kkaempf/kitbuilder
+
+== Introduction
+
+A simpler way to builder -kit for building Java packages
+
+== Authors
+
+* Klaus Kämpf <kkaempf@suse.de>
+
+== License
+
+Copyright (c) 2016 SUSE LINUX Products GmbH.
+
+Supportconfig is licensed under the MIT license. See MIT-LICENSE for details.
