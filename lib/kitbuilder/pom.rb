@@ -2,8 +2,9 @@ require 'nokogiri'
 
 module Kitbuilder
   class Pom
-    def initialize pomfile
+    def initialize pomfile, parent_dep = nil
       @file = pomfile
+      @parent = parent_dep
       begin
         File.open(pomfile) do |f|
           begin
@@ -28,7 +29,12 @@ module Kitbuilder
         artifact = d.xpath("#{@xmlns}artifactId")[0].text
         version = d.xpath("#{@xmlns}version")[0].text rescue nil
         scope = d.xpath("#{@xmlns}scope")[0].text rescue nil
-        yield Dependency.new group, artifact, version, scope
+        optional = d.xpath("#{@xmlns}optional")[0].text rescue nil
+        begin
+          yield Dependency.new @parent, { group: group, artifact: artifact, version: version, scope: scope, optional: optional }
+        rescue DependencyExistsError
+          STDERR.puts "\n\t*** Loop"
+        end
       end
       nil
     end

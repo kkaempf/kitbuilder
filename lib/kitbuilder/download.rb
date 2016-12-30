@@ -9,8 +9,9 @@ module Kitbuilder
         IO.copy_stream stream, target
         puts "#{target} downloaded to #{Dir.pwd}"
       rescue OpenURI::HTTPError
-        false
+        return false
       end
+      target
     end
   end
 end

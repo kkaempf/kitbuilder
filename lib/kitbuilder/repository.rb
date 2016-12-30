@@ -17,6 +17,7 @@ module Kitbuilder
         puts "Repository download #{uri}"
         unless dependency.version
           mavenname = "maven-metadata.xml"
+          puts "Lookup latest version from #{mavenname}"
           result = nil
           begin            
             Download.download(uri + "/#{mavenname}", mavenname )
@@ -26,7 +27,7 @@ module Kitbuilder
               result = self.download dependency
             end
           ensure
-            File.unlink mavenname
+            File.unlink mavenname rescue nil
           end
           return result
         end

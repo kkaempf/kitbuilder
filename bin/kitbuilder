@@ -52,4 +52,4 @@ pom = ARGV.shift
 puts "Starting with #{pom}"
 
 kitbuilder = Kitbuilder::Kitbuilder.new m2dir
-kitbuilder.handle pom
+kitbuilder.handle pom, nil
