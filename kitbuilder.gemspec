@@ -12,6 +12,7 @@ Gem::Specification.new do |s|
   s.description = %q{Build tetra -kit simply}
 
   s.rubyforge_project = "kitbuilder"
+  s.add_dependency('nokogiri')
 
   s.files         = `git ls-files`.split("\n")
   s.test_files    = `git ls-files -- {test,spec,features}/*`.split("\n")

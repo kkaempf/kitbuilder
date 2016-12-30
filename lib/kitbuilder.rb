@@ -24,7 +24,43 @@
 #++
 require 'rubygems'
 require 'kitbuilder/version'
+require 'kitbuilder/pom'
+require 'kitbuilder/dependency'
+require 'kitbuilder/download'
+require 'kitbuilder/maven2'
+require 'kitbuilder/bintray'
 
 module Kitbuilder
+
+  class Kitbuilder
+    def initialize m2dir = nil
+      @m2dir = m2dir
+    end
+    def handle pomspec
+      puts "Handle #{pomspec.inspect}"
+      case pomspec
+      when nil
+        STDERR.puts "Failed"
+        exit 1
+      when Pom
+        pomspec.dependencies do |dep|
+          handle dep.resolve(@m2dir)
+        end
+      when /\.pom/
+        # .pom file
+        pom = Pom.new pomspec
+        pom.dependencies do |dep|
+          handle dep.resolve(@m2dir)
+        end
+      when /([^:]+):([^:]+):(.+)/
+        # pom spec com.android.tools.lint:lint:25.2.0-beta2
+        dep = Dependency.new $1, $2, $3
+        handle dep.resolve(@m2dir)
+      else
+        STDERR.puts "Can't handle pomspec #{pomspec.inspect}"
+        raise
+      end
+    end
+  end
 
 end

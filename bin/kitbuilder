@@ -27,3 +27,29 @@
 #++
 $:.push(File.join(File.dirname(__FILE__), '..', 'lib'))
 require 'kitbuilder'
+require 'getoptlong'
+
+def usage msg = nil
+  STDERR.puts "*** #{msg}" if msg
+  STDERR.puts "kitbuilder [-D <m2-dir>] [<pomfile>|<pomspec>]"
+end
+
+m2dir = nil
+pomdef = nil
+
+GetoptLong.new(
+  [ '-h', '--help', GetoptLong::NO_ARGUMENT ],
+  [ '-D', '--m2dir', GetoptLong::REQUIRED_ARGUMENT ]
+).each do |opt, arg|
+  case opt
+  when '-D', '--m2dir'
+    m2dir = arg
+  end     
+end
+
+pom = ARGV.shift
+
+puts "Starting with #{pom}"
+
+kitbuilder = Kitbuilder::Kitbuilder.new m2dir
+kitbuilder.handle pom
