@@ -29,6 +29,7 @@ require 'kitbuilder/dependency'
 require 'kitbuilder/download'
 require 'kitbuilder/maven2'
 require 'kitbuilder/bintray'
+require 'kitbuilder/gradle'
 
 module Kitbuilder
 

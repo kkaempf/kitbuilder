@@ -89,7 +89,7 @@ module Kitbuilder
       Dir.chdir m2dir do
         FileUtils.mkdir_p @path
         Dir.chdir @path do
-          pomfile = Maven2.download(self) || Bintray.download(self)
+          pomfile = Maven2.download(self) || Bintray.download(self) || Gradle.download(self)
           puts "\n\t -> #{pomfile.inspect}"
           if pomfile
             File.expand_path(File.join(m2dir, @path, pomfile))
