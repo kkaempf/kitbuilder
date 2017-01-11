@@ -43,15 +43,13 @@ module Kitbuilder
       when nil
         # nothing
       when Pom
-        pomspec.dependencies do |dep|
-          next unless dep.runtime?
+        pomspec.dependencies do |dep|          
           handle dep.resolve(@m2dir), dep
         end
       when /\.pom/
         # .pom file
         pom = Pom.new pomspec, parent_dep
         pom.dependencies do |dep|
-          next unless dep.runtime?
           handle dep.resolve(@m2dir), dep
         end
       when /([^:]+):([^:]+)(:(.+))?/
