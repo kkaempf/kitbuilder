@@ -43,13 +43,14 @@ GetoptLong.new(
 ).each do |opt, arg|
   case opt
   when '-D', '--m2dir'
-    m2dir = arg
-  end     
+    m2dir = File.expand_path(arg)
+  end
 end
 
 pom = ARGV.shift
 
 puts "Starting with #{pom}"
+puts "Dir #{m2dir}" if m2dir
 
 kitbuilder = Kitbuilder::Kitbuilder.new m2dir
 kitbuilder.handle pom, nil
