@@ -60,6 +60,8 @@ if buildlog
     f.each do |l|
       next unless l =~ /\> Could not resolve (.*)\.$/
       pom = $1
+      # > Could not resolve all dependencies for configuration ...
+      next if pom =~ /all dependencies/
       puts ".build.log: Found pom #{pom}"
       kitbuilder.handle pom
     end
