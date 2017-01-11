@@ -15,19 +15,9 @@ module Kitbuilder
     }
     attr_reader :group, :artifact, :scope, :optional
     attr_accessor :version
-    private
-    def exists?
-      versions = @@groups[@group][@artifact] rescue nil
-      case versions
-      when nil then false
-      when Array then versions.include? @version
-      when Dependency then versions
-      else
-        false
-      end
-    end
-    public
+
     def initialize parent, properties
+#      puts "Dependency.new #{properties.inspect}"
       @parent = parent
       @group = properties[:group]
       artifacts = @@groups[group] || Hash.new
@@ -36,7 +26,7 @@ module Kitbuilder
       # treat "${foo.version}" as 'latest'
       version = properties[:version]
       @version = (version[0,1] == "$" ? nil : version) rescue nil
-      if exists?
+      if Dependency.find properties
         raise DependencyExistsError
       end
       versions = artifacts[@artifact] ||= Hash.new
@@ -55,10 +45,10 @@ module Kitbuilder
     def self.find properties
       puts "Dependency.find #{properties.inspect}"
       artifacts = @@groups[properties[:group]]
-      puts "Dependency.find artifacts #{artifacts.inspect}"
+      puts "Dependency.find: group artifacts #{artifacts.inspect}"
       return nil unless artifacts
       versions = artifacts[properties[:artifact]]
-      puts "Dependency.find versions #{versions.inspect}"
+      puts "Dependency.find: artifact versions #{versions.inspect}"
       dependency = case versions
                    when nil
                      nil
@@ -69,7 +59,7 @@ module Kitbuilder
                    else
                      nil
                    end
-      puts "Dependency.find dependency #{dependency.inspect}"
+      puts "Dependency.find dependency #{dependency}"
       dependency
     end
     def test?
@@ -100,7 +90,7 @@ module Kitbuilder
     # @return full path to .pom file
     #
     def resolve m2dir
-#      puts "\n\tResolving '#{self}'\n\tto #{m2dir.inspect}\n\t+ #{@path}"
+#      puts "\tResolving '#{self}'"
       if @group[0,1] == "$"
         puts "\tCan't resolve group #{@group.inspect}"
         return
@@ -110,7 +100,7 @@ module Kitbuilder
         FileUtils.mkdir_p @path
         Dir.chdir @path do
           pomfile = Maven2.download(self) || Bintray.download(self) || Gradle.download(self)
-#          puts "\n\t -> #{pomfile.inspect}"
+#          puts "\n\t  Download -> #{pomfile.inspect}"
           if pomfile
             File.expand_path(File.join(m2dir, @path, pomfile))
           else
