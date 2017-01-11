@@ -37,7 +37,7 @@ module Kitbuilder
     def initialize m2dir = nil
       @m2dir = m2dir
     end
-    def handle pomspec, parent_dep
+    def handle pomspec, parent_dep = nil
       puts "Handle #{pomspec.inspect}"
       case pomspec
       when nil
@@ -56,8 +56,12 @@ module Kitbuilder
         end
       when /([^:]+):([^:]+)(:(.+))?/
         # pom spec com.android.tools.lint:lint:25.2.0-beta2
-        dep = Dependency.new parent_dep, { group: $1, artifact: $2, version: ($3 ? $4 : nil) }
-        handle dep.resolve(@m2dir), dep
+        begin
+          dep = Dependency.new parent_dep, { group: $1, artifact: $2, version: ($3 ? $4 : nil) }
+          handle dep.resolve(@m2dir), dep
+        rescue DependencyExistsError
+          puts "Dependency to #{pomspec} already handled"
+        end
       else
         STDERR.puts "Can't handle pomspec #{pomspec.inspect}"
         raise

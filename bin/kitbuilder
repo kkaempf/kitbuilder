@@ -34,23 +34,38 @@ def usage msg = nil
   STDERR.puts "kitbuilder [-D <m2-dir>] [<pomfile>|<pomspec>]"
 end
 
+buildlog = nil
 m2dir = nil
 pomdef = nil
 
 GetoptLong.new(
   [ '-h', '--help', GetoptLong::NO_ARGUMENT ],
-  [ '-D', '--m2dir', GetoptLong::REQUIRED_ARGUMENT ]
+  [ '-D', '--m2dir', GetoptLong::REQUIRED_ARGUMENT ],
+  [ '-b', '--buildlog', GetoptLong::REQUIRED_ARGUMENT ]
 ).each do |opt, arg|
   case opt
   when '-D', '--m2dir'
     m2dir = File.expand_path(arg)
+    puts "Dir #{m2dir}"
+  when '-b', '--buildlog'
+    buildlog = File.expand_path(arg)
   end
 end
 
-pom = ARGV.shift
-
-puts "Starting with #{pom}"
-puts "Dir #{m2dir}" if m2dir
-
 kitbuilder = Kitbuilder::Kitbuilder.new m2dir
-kitbuilder.handle pom, nil
+
+
+if buildlog
+  File.open(buildlog) do |f|
+    f.each do |l|
+      next unless l =~ /\> Could not resolve (.*)\.$/
+      pom = $1
+      puts "POM #{pom}"
+      kitbuilder.handle pom
+    end
+  end
+else
+  pom = ARGV.shift
+  puts "Starting with #{pom}"
+  kitbuilder.handle pom
+end
