@@ -33,7 +33,7 @@ module Kitbuilder
         begin
           yield Dependency.new @parent, { group: group, artifact: artifact, version: version, scope: scope, optional: optional }
         rescue DependencyExistsError
-          STDERR.puts "\n\t*** Loop"
+#          STDERR.puts "\n\t*** Loop"
         end
       end
       nil

@@ -10,7 +10,7 @@ module Kitbuilder
       basename = "#{dependency.artifact}" + (dependency.version ? "-#{dependency.version}" : "") 
       pomfile = basename + ".pom"
       if File.exists?(pomfile)
-        puts "#{pomfile} exists"
+#        puts "#{pomfile} exists"
         pomfile
       else
         uri = self.build_uri dependency
