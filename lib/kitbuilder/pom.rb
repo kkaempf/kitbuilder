@@ -24,7 +24,7 @@ module Kitbuilder
       @file
     end
     def dependencies
-      @xml.xpath("//#{@xmlns}dependency").each do |d|
+      @xml.xpath("//#{@xmlns}dependency | //#{@xmlns}parent").each do |d|
         group = d.xpath("#{@xmlns}groupId")[0].text
         artifact = d.xpath("#{@xmlns}artifactId")[0].text
         version = d.xpath("#{@xmlns}version")[0].text rescue nil
