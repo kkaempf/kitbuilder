@@ -26,6 +26,7 @@ module Kitbuilder
               dependency.version = xml.xpath("//latest")[0].text
               result = self.download dependency
             end
+          rescue
           ensure
             File.unlink mavenname rescue nil
           end
