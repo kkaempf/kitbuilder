@@ -56,11 +56,13 @@ module Kitbuilder
         end
       when /([^:]+):([^:]+)(:(.+))?/
         # pom spec com.android.tools.lint:lint:25.2.0-beta2
+        properties = { group: $1, artifact: $2, version: ($3 ? $4 : nil) }
         begin
-          dep = Dependency.new parent_dep, { group: $1, artifact: $2, version: ($3 ? $4 : nil) }
+          dep = Dependency.new parent_dep, properties
           handle dep.resolve(@m2dir), dep
         rescue DependencyExistsError
           puts "Dependency to #{pomspec} already handled"
+          Dependency.find properties
         end
       else
         STDERR.puts "Can't handle pomspec #{pomspec.inspect}"

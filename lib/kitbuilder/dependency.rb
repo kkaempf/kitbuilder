@@ -52,6 +52,26 @@ module Kitbuilder
       @path = File.join(@group.split("."), @artifact)
       @path = File.join(@path, @version) if @version
     end
+    def self.find properties
+      puts "Dependency.find #{properties.inspect}"
+      artifacts = @@groups[properties[:group]]
+      puts "Dependency.find artifacts #{artifacts.inspect}"
+      return nil unless artifacts
+      versions = artifacts[properties[:artifact]]
+      puts "Dependency.find versions #{versions.inspect}"
+      dependency = case versions
+                   when nil
+                     nil
+                   when Array
+                     versions[properties[:version]]
+                   when Dependency
+                     versions
+                   else
+                     nil
+                   end
+      puts "Dependency.find dependency #{dependency.inspect}"
+      dependency
+    end
     def test?
       @scope == "test"
     end
