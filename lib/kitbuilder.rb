@@ -38,7 +38,7 @@ module Kitbuilder
       @m2dir = m2dir
     end
     def handle pomspec, parent_dep = nil
-      puts "Handle #{pomspec.inspect}"
+#      puts "Handle #{pomspec.inspect}"
       case pomspec
       when nil
         # nothing

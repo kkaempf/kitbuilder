@@ -60,7 +60,7 @@ if buildlog
     f.each do |l|
       next unless l =~ /\> Could not resolve (.*)\.$/
       pom = $1
-      puts "POM #{pom}"
+      puts ".build.log: Found pom #{pom}"
       kitbuilder.handle pom
     end
   end

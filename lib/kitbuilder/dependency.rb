@@ -80,7 +80,7 @@ module Kitbuilder
     # @return full path to .pom file
     #
     def resolve m2dir
-      puts "\n\tResolving '#{self}'\n\tto #{m2dir.inspect}\n\t+ #{@path}"
+#      puts "\n\tResolving '#{self}'\n\tto #{m2dir.inspect}\n\t+ #{@path}"
       if @group[0,1] == "$"
         puts "\tCan't resolve group #{@group.inspect}"
         return
