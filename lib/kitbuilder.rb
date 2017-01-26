@@ -31,6 +31,7 @@ require 'kitbuilder/maven2'
 require 'kitbuilder/bintray'
 require 'kitbuilder/gradle'
 require 'kitbuilder/sonatype'
+require 'kitbuilder/torquebox'
 
 module Kitbuilder
 
