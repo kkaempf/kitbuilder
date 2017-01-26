@@ -30,42 +30,24 @@ require 'kitbuilder/download'
 require 'kitbuilder/maven2'
 require 'kitbuilder/bintray'
 require 'kitbuilder/gradle'
+require 'kitbuilder/sonatype'
 
 module Kitbuilder
 
   class Kitbuilder
     def initialize m2dir = nil
       @m2dir = m2dir
+      Pom.destination = @m2dir
     end
-    def handle pomspec, parent_dep = nil
+    # specify .jar to download
+    def jar= j
+      @jar = j
+    end
+    def handle pomspec
 #      puts "Handle #{pomspec.inspect}"
-      case pomspec
-      when nil
-        # nothing
-      when Pom
-        pomspec.dependencies do |dep|          
-          handle dep.resolve(@m2dir), dep
-        end
-      when /\.pom/
-        # .pom file
-        pom = Pom.new pomspec, parent_dep
-        pom.dependencies do |dep|
-          handle dep.resolve(@m2dir), dep
-        end
-      when /([^:]+):([^:]+)(:(.+))?/
-        # pom spec com.android.tools.lint:lint:25.2.0-beta2
-        properties = { group: $1, artifact: $2, version: ($3 ? $4 : nil) }
-        begin
-          dep = Dependency.new parent_dep, properties
-          handle dep.resolve(@m2dir), dep
-        rescue DependencyExistsError
-          puts "Dependency to #{pomspec} already handled"
-          Dependency.find properties
-        end
-      else
-        STDERR.puts "Can't handle pomspec #{pomspec.inspect}"
-        raise
-      end
+      pom = Pom.new pomspec
+      pom.jar = @jar
+      pom.resolve
     end
   end
 
