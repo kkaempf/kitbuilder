@@ -2,8 +2,6 @@
 # Download dependency from https://plugins.gradle.org/m2/
 #
 
-require "kitbuilder/repository"
-
 module Kitbuilder
   class Gradle < Repository
     def self.build_uri dependency

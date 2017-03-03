@@ -27,11 +27,7 @@ require 'kitbuilder/version'
 require 'kitbuilder/pom'
 require 'kitbuilder/dependency'
 require 'kitbuilder/download'
-require 'kitbuilder/maven2'
-require 'kitbuilder/bintray'
-require 'kitbuilder/gradle'
-require 'kitbuilder/sonatype'
-require 'kitbuilder/torquebox'
+require 'kitbuilder/repositories'
 
 module Kitbuilder
 

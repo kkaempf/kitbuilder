@@ -1,0 +1,6 @@
+require_relative "repository/repository"
+require_relative "repository/bintray"
+require_relative "repository/gradle"
+require_relative "repository/maven2"
+require_relative "repository/sonatype"
+require_relative "repository/torquebox"

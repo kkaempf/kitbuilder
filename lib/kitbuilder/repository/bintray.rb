@@ -2,8 +2,6 @@
 # Download dependency from https://bintray.com
 #
 
-require "kitbuilder/repository"
-
 module Kitbuilder
   class Bintray < Repository
     def self.build_uri dependency
