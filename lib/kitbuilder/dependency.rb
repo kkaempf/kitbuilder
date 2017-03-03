@@ -9,7 +9,7 @@ end
 
 module Kitbuilder
   class Dependency
-    @@groups = Hash.new
+    @@dependencies = []
     MAPPING = {
       "xerces-impl" => "xercesImpl"
     }
@@ -20,47 +20,52 @@ module Kitbuilder
 #      puts "Dependency.new #{properties.inspect}"
       @parent = parent
       @group = properties[:group]
-      artifacts = @@groups[group] || Hash.new
       artifact = properties[:artifact]
       @artifact = MAPPING[artifact] || artifact
       # treat "${foo.version}" as 'latest'
       version = properties[:version]
       @version = (version[0,1] == "$" ? nil : version) rescue nil
-      if Dependency.find properties
+      if @@dependencies.include? self
         raise DependencyExistsError
-      end
-      versions = artifacts[@artifact] ||= Hash.new
-      if @version
-        versions[@version] = self
       else
-        artifacts[@artifact] = self
+        @@dependencies << self
       end
-      @@groups[group] = artifacts
       # test/compile/runtime
       @scope = properties[:scope]
       @optional = properties[:optional]
       @path = File.join(@group.split("."), @artifact)
       @path = File.join(@path, @version) if @version
     end
+    def <=> other
+      case other
+      when Dependency
+        ret = @group <=> other.group
+        if ret == 0
+          ret = @artifact <=> other.artifact
+          if ret == 0
+            ret = @version <=> other.version
+          end
+        end
+        ret
+      when Hash
+        artifact = other[:artifact]
+        artifact = MAPPING[artifact] || artifact
+        version = other[:version]
+        version = (version[0,1] == "$" ? nil : version) rescue nil
+        ret = @group <=> other[:group]
+        if ret == 0
+          ret = @artifact <=> artifact
+          if ret == 0
+            @version <=> version
+          end
+        end
+        ret
+      else
+        nil
+      end
+    end
     def self.find properties
-      puts "Dependency.find #{properties.inspect}"
-      artifacts = @@groups[properties[:group]]
-      puts "Dependency.find: group artifacts #{artifacts.inspect}"
-      return nil unless artifacts
-      versions = artifacts[properties[:artifact]]
-      puts "Dependency.find: artifact versions #{versions.inspect}"
-      dependency = case versions
-                   when nil
-                     nil
-                   when Array
-                     versions[properties[:version]]
-                   when Dependency
-                     versions
-                   else
-                     nil
-                   end
-      puts "Dependency.find dependency #{dependency}"
-      dependency
+      @@dependencies.include? properties
     end
     def test?
       @scope == "test"
@@ -83,31 +88,6 @@ module Kitbuilder
         s += " < #{@parent}"
       end
       s
-    end
-    #
-    # resolve dependency by downloading pom/jar
-    #
-    # @return full path to .pom file
-    #
-    def resolve m2dir
-#      puts "\tResolving '#{self}'"
-      if @group[0,1] == "$"
-        puts "\tCan't resolve group #{@group.inspect}"
-        return
-      end
-      m2dir ||= "."
-      Dir.chdir m2dir do
-        FileUtils.mkdir_p @path
-        Dir.chdir @path do
-          pomfile = Maven2.download(self) || Bintray.download(self) || Gradle.download(self)
-#          puts "\n\t  Download -> #{pomfile.inspect}"
-          if pomfile
-            File.expand_path(File.join(m2dir, @path, pomfile))
-          else
-            STDERR.puts "*** Download of #{self} failed"
-          end
-        end
-      end
     end
   end
 end
