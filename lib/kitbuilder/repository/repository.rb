@@ -7,7 +7,7 @@ require 'tmpdir'
 module Kitbuilder
   class Repository
     def self.download pom
-      basename = "#{pom.artifact}" + (pom.version ? "-#{pom.version}" : "") 
+      basename = pom.basename
       pomfile = basename + ".pom"
       if File.exists?(pomfile)
 #        puts "#{pomfile} exists"

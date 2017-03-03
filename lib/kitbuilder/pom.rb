@@ -28,7 +28,7 @@ module Kitbuilder
       Dir.chdir @@m2dir do
         FileUtils.mkdir_p path
         Dir.chdir path do
-          cached, pomfile = Maven2.download(self) || Bintray.download(self) || Gradle.download(self)
+          cached, pomfile = Maven2.download(self) || Bintray.download(self) || Gradle.download(self) || Torquebox.download(self)
           case pomfile
           when ::String
             join = File.join(@@m2dir, path, pomfile)
@@ -47,8 +47,9 @@ module Kitbuilder
       begin
         File.open(file) do |f|
           begin
-            @xml = Nokogiri::XML(f)
-            @xmlns = @xml.xpath("//project").empty? ? "xmlns:" : ""
+            @xml = Nokogiri::XML(f).root
+            namespaces = @xml.namespaces
+            @xmlns = (namespaces["xmlns"])?"xmlns:":""
           rescue Exception => e
             STDERR.puts "Error parsing #{pomfile}: #{e}"
             raise
@@ -87,9 +88,10 @@ module Kitbuilder
         @optional = pomspec[:optional]
       when /\.pom/
         parse pomspec
-        @group = @xml.xpath("//#{@xmlns}groupId")[0].text
-        artifact = @xml.xpath("//#{@xmlns}artifactId")[0].text
-        @version = @xml.xpath("//#{@xmlns}version")[0].text
+        project = @xml.xpath("/#{@xmlns}project")
+        @group = project.xpath("#{@xmlns}groupId")[0].text rescue project.xpath("#{@xmlns}parent/#{@xmlns}groupId")[0].text 
+        artifact = project.xpath("#{@xmlns}artifactId")[0].text
+        @version = project.xpath("#{@xmlns}version")[0].text rescue project.xpath("#{@xmlns}parent/#{@xmlns}version")[0].text 
         @file = pomspec
       when /([^:]+):([^:]+)(:(.+))?/
         @group = $1
@@ -142,6 +144,20 @@ module Kitbuilder
       s
     end
     #
+    # basename of .pom or .jar file
+    #
+    def basename
+      basename = "#{@artifact}" + (@version ? "-#{@version}" : "") 
+    end
+    #
+    # dirname of .pom of .jar file (in maven)
+    #
+    def dirname
+      path = File.join(@group.split("."), @artifact)
+      path = File.join(path, @version) if @version
+      path
+    end
+    #
     # dependencies
     #
     def dependencies
@@ -164,10 +180,8 @@ module Kitbuilder
     #
     def resolve
       puts "Resolving #{self}"
-      path = File.join(@group.split("."), @artifact)
-      path = File.join(path, @version) if @version
       # does it exist ?
-      cached, result = download_to path
+      cached, result = download_to dirname
       if cached
         puts "Exists"
       else
