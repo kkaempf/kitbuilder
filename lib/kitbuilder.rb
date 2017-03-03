@@ -24,9 +24,10 @@
 #++
 require 'rubygems'
 require 'kitbuilder/version'
-require 'kitbuilder/pom'
+require 'kitbuilder/convert'
 require 'kitbuilder/dependency'
 require 'kitbuilder/download'
+require 'kitbuilder/pom'
 require 'kitbuilder/repositories'
 
 module Kitbuilder
@@ -40,11 +41,21 @@ module Kitbuilder
     def jar= j
       @jar = j
     end
+    #
+    # handle pom specification (download)
+    #
     def handle pomspec
 #      puts "Handle #{pomspec.inspect}"
       pom = Pom.new pomspec
       pom.jar = @jar
       pom.resolve
+    end
+    #
+    # convert gradle cache to maven cache
+    #
+    def gradle gradledir
+      convert = Convert.new gradledir
+      convert.convert_to @m2dir
     end
   end
 

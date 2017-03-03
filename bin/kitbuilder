@@ -32,14 +32,21 @@ require 'getoptlong'
 def usage msg = nil
   STDERR.puts "*** #{msg}" if msg
   STDERR.puts "kitbuilder [-D <m2-dir>] [<pomfile>|<pomspec>]"
+  STDERR.puts
+  STDERR.puts "Options:"
+  STDERR.puts " -D <m2-dir>     directory of maven cache"
+  STDERR.puts " -g <gradle-dir> convert gradle cache to maven cache"
+  STDERR.puts " -b <build.log>  parse build log for missing pom/jar"
 end
 
 buildlog = nil
 m2dir = nil
+gradledir = nil
 pomdef = nil
 
 GetoptLong.new(
   [ '-h', '--help', GetoptLong::NO_ARGUMENT ],
+  [ '-g', '--gradle', GetoptLong::REQUIRED_ARGUMENT ],
   [ '-D', '--m2dir', GetoptLong::REQUIRED_ARGUMENT ],
   [ '-b', '--buildlog', GetoptLong::REQUIRED_ARGUMENT ]
 ).each do |opt, arg|
@@ -47,6 +54,9 @@ GetoptLong.new(
   when '-D', '--m2dir'
     m2dir = File.expand_path(arg)
     puts "Dir #{m2dir}"
+  when '-g', '--gradle'
+    gradledir = File.expand_path(arg)
+    puts "Gradle #{gradledir}"
   when '-b', '--buildlog'
     buildlog = File.expand_path(arg)
   end
@@ -79,6 +89,9 @@ if buildlog
       kitbuilder.handle pom
     end
   end
+elsif gradledir
+  puts "Converting gradle to maven"
+  kitbuilder.gradle gradledir
 else
   pom = ARGV.shift
   jar = ARGV.shift

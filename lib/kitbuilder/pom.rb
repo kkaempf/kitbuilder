@@ -86,12 +86,11 @@ module Kitbuilder
         @scope = pomspec[:scope]
         @optional = pomspec[:optional]
       when /\.pom/
-        name = File.basename(pomspec, ".pom")
-        dirs = File.dirname(pomspec).split("/")
-        @group = 
-        @version = name.split("-").last
+        parse pomspec
+        @group = @xml.xpath("//#{@xmlns}groupId")[0].text
+        artifact = @xml.xpath("//#{@xmlns}artifactId")[0].text
+        @version = @xml.xpath("//#{@xmlns}version")[0].text
         @file = pomspec
-        return Pom.new pomspec, parent
       when /([^:]+):([^:]+)(:(.+))?/
         @group = $1
         artifact = $2
