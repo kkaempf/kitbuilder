@@ -59,6 +59,9 @@ GetoptLong.new(
     puts "Gradle #{gradledir}"
   when '-b', '--buildlog'
     buildlog = File.expand_path(arg)
+  when '-h', '--help'
+    usage
+    exit 0
   end
 end
 
