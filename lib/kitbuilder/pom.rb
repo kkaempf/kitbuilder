@@ -72,7 +72,6 @@ module Kitbuilder
     #
     def initialize pomspec
       artifact = nil
-      @@m2dir = "."
       case pomspec
       when Pom
         @group = pomspec.group
@@ -98,7 +97,7 @@ module Kitbuilder
         artifact = $2
         @version = ($3 ? $4 : nil)
       else
-        STDERR.puts "Unrecognized pomspec >#{pomspect.inspect}<"
+        STDERR.puts "Unrecognized pomspec >#{pomspec.inspect}<"
       end
       @artifact = MAPPING[artifact] || artifact
     end
