@@ -1,0 +1,168 @@
+#!/usr/bin/env ruby
+#
+# jarcheck.rb
+#
+# Find built vs. downloaded jars in rpm
+# by comparing -kit content with rpm content
+#
+# Everything that is in -kit *and* in rpm is downloaded
+# Everything that is in -kit and *not* in rpm is build dependency
+# Everything that is *not* in -kit and in rpm is built
+#
+# Klaus Kämpf, April 2017
+#
+
+$:.push(File.join(File.dirname(__FILE__), '..', 'lib'))
+require 'kitbuilder'
+
+require "find"
+
+def help msg = nil
+  STDERR.puts "*** #{msg}" if msg
+  STDERR.puts "Usage:"
+  STDERR.puts "jarcheck <name> [<unpacked-rpm>]"
+  STDERR.puts "to check all jars packaged in <name>*"
+  exit((msg)?1:0)
+end
+
+def find_unpacked_rpm name
+  r = Regexp.new(name)
+
+  Find.find("rpm") do |path|
+    next unless path =~ r
+    if File.directory?(path)
+      return path
+    end
+  end
+  nil
+end
+
+def find_unpacked_kit name
+  r = Regexp.new(name)
+
+  Dir.open(".") do |dir|
+    dir.each do |path|
+      next unless path =~ r
+      next unless path =~ /\-kit/
+      next unless File.directory?(path)
+      kit = File.join(path,"kit")
+      if File.directory?(kit)
+        return kit
+      end
+    end
+  end
+  nil
+end
+
+def find_all_jars_under dir
+  jars = {}
+  Find.find(dir) do |path|
+    b = File.basename path
+    if b =~ /.*\.jar/
+      if jars[b]
+        STDERR.puts "Dup #{path},#{jars[b]}"
+        return nil
+      end
+      jars[b] = path
+    end
+  end
+  jars.keys
+end
+
+def find_jar_under jar, kit
+  r = Regexp.new(jar+"$")
+  dirs = []
+  Find.find(kit) do |path|
+    next unless path =~ r
+    dirs << path
+  end
+  dirs
+end
+
+def extract_mavenspec path, jar
+  dirs = path.split("/")
+  unless dirs.pop == jar
+    return nil
+  end
+  if dirs.include? "gradle"
+    #kafka-kit/kit/gradle/caches/modules-2/files-2.1/org.apache.zookeeper/zookeeper/3.4.6/1b2502e29da1ebaade2357cd1de35a855fa3755/zookeeper-3.4.6.jar
+    dirs.pop #md5
+    version = dirs.pop
+    name = dirs.pop
+    org = dirs.pop
+  elsif dirs.include? "m2"
+    dirs.shift # drop unpacked_kit
+    dirs.shift # drop kit
+    dirs.shift # "m2"
+    version = dirs.pop
+    name = dirs.pop
+    org = dirs.join(".")
+  else
+    return nil
+  end
+  "#{org}:#{name}:#{version}"
+end
+  
+name = ARGV.shift
+help unless name
+
+STDERR.puts "JAR checking #{name}"
+
+unless ARGV.empty?
+  unpacked_rpm = ARGV.shift
+else
+  unpacked_rpm = find_unpacked_rpm name
+  help "Unpacked rpm for '#{name}' not found" unless unpacked_rpm
+end
+STDERR.puts "Unpacked rpm at #{unpacked_rpm}"
+
+unpacked_kit = find_unpacked_kit name
+help "Unpacked kit for '#{name}' not found" unless unpacked_kit
+
+STDERR.puts "Unpacked kit at #{unpacked_kit}"
+
+rpm_jars = find_all_jars_under(unpacked_rpm).sort
+
+result = {}
+
+rpm_jars.each do |jar|
+  jarpathes = find_jar_under jar, unpacked_kit
+#  STDERR.puts "#{jar}: #{jarpathes.inspect}"
+  if jarpathes.empty?
+    # jar is in rpm only
+#    puts "#{jar}: <built>"
+    result[jar] = nil
+    next
+  end
+  jarpathes.each do |jarpath|
+    # find jar in -kit
+    spec = extract_mavenspec jarpath, jar
+    if spec
+#      puts "#{jar}: #{spec}"
+      result[jar] = spec
+    else
+      STDERR.puts "*** No spec #{jar}:#{jarpath}"
+    end
+  end
+end
+
+puts "#{rpm_jars.size} rpm jars, #{result.size} tracked"
+
+unresolved = rpm_jars - result.keys
+
+unresolved.each do |jar|
+  STDERR.puts "*** Unresolved #{jar}"
+end
+
+exit 1 unless unresolved.empty?
+
+Kitbuilder::Pom.destination = File.join(Dir.pwd, "jars")
+
+Dir.mkdir Kitbuilder::Pom.destination unless File.exists?(Kitbuilder::Pom.destination)
+
+result.each do |jar,pomspec|
+  next if pomspec.nil? # jar was built
+  puts "#{jar}: #{pomspec}"
+  pom = Kitbuilder::Pom.new pomspec
+  pom.download_to Kitbuilder::Pom.destination
+end
