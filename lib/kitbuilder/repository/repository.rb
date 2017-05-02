@@ -36,10 +36,12 @@ module Kitbuilder
         end
         jarfile = basename + ".jar"
         testsfile = basename + "-test.jar"
+        sourcesfile = basename + "-sources.jar"
         case Download.download(uri + "/#{pomfile}", pomfile)
         when :cached, :downloaded
           Download.download(uri + "/#{jarfile}", jarfile)
           Download.download(uri + "/#{testsfile}", testsfile)
+          Download.download(uri + "/#{sourcesfile}", sourcesfile)
           [false, pomfile]
         else
           nil
