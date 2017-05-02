@@ -2,7 +2,7 @@ require 'nokogiri'
 
 module Kitbuilder
   class Pom
-    attr_reader :file, :group, :artifact, :version, :parent
+    attr_reader :file, :group, :artifact, :version, :parent, :with_sources
 
     MAPPING = {
       "xerces-impl" => "xercesImpl"
@@ -23,16 +23,17 @@ module Kitbuilder
     #
     # @return full path to .pom file
     #
-    def download_to path
+    def download_to path, with_sources = nil
       if @group[0,1] == "$"
         puts "\tCan't resolve group #{@group.inspect}"
         return
       end
-      join = cached = nil
+      @with_sources = with_sources
+      join = cached = sourcesfile = nil
       Dir.chdir @@m2dir do
         FileUtils.mkdir_p path
         Dir.chdir path do
-          cached, pomfile = Maven2.download(self) || Bintray.download(self) || Gradle.download(self) || Torquebox.download(self)
+          cached, pomfile, sourcesfile = Maven2.download(self) || Bintray.download(self) || Gradle.download(self) || Torquebox.download(self)
           case pomfile
           when ::String
             join = File.join(@@m2dir, path, pomfile)
@@ -42,7 +43,7 @@ module Kitbuilder
           end
         end
       end
-      [cached, File.expand_path(join)]
+      [cached, File.expand_path(join), sourcesfile]
     end
     #
     # parse a .pom file
