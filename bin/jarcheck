@@ -16,6 +16,38 @@ $:.push(File.join(File.dirname(__FILE__), '..', 'lib'))
 require 'kitbuilder'
 
 require "find"
+require "erb"
+
+class Spec
+  attr_accessor :name, :version, :summary, :description, :sources
+
+  def initialize name, version = nil
+    @name = "#{name}-sources"
+    @version = version || "0"
+    @sources = []
+    @description = "Source jars/zips for license-digger"
+    @summary = "Source jars/zips for #{name}"
+  end
+
+  def add_source source
+    puts "spec.add_source #{source}"
+    @sources << source
+  end
+
+  def write
+    # build source rpm .spec
+    spec_template = File.expand_path(File.join(File.dirname(__FILE__), "..", "templates", "jar-sources.spec.erb"))
+    erb_template = File.read(spec_template)
+    # -:  omit blank lines ending in -%>
+    erb = ERB.new(erb_template, nil, "-")
+    spec_name = "#{@name}.spec"
+    File.open(spec_name, "w+") do |f|
+      spec = self
+      f.puts(erb.result(binding()))
+    end
+    STDERR.puts "Wrote #{spec_name}"
+  end
+end
 
 def help msg = nil
   STDERR.puts "*** #{msg}" if msg
@@ -160,9 +192,18 @@ Kitbuilder::Pom.destination = File.join(Dir.pwd, "jars")
 
 Dir.mkdir Kitbuilder::Pom.destination unless File.exists?(Kitbuilder::Pom.destination)
 
+spec = Spec.new name
+
 result.each do |jar,pomspec|
   next if pomspec.nil? # jar was built
   puts "#{jar}: #{pomspec}"
   pom = Kitbuilder::Pom.new pomspec
-  pom.download_to Kitbuilder::Pom.destination
+  cached, pomfile, sourcesfile = pom.download_to Kitbuilder::Pom.destination, true # download with sources
+  if sourcesfile
+    spec.add_source sourcesfile
+  else
+    spec.add_source "# #{pomspec}"
+  end    
 end
+
+spec.write
