@@ -36,13 +36,31 @@ module Kitbuilder
         end
         jarfile = basename + ".jar"
         testsfile = basename + "-test.jar"
-        sourcesfile = basename + "-sources.jar"
         case Download.download(uri + "/#{pomfile}", pomfile)
         when :cached, :downloaded
           Download.download(uri + "/#{jarfile}", jarfile)
           Download.download(uri + "/#{testsfile}", testsfile)
-          Download.download(uri + "/#{sourcesfile}", sourcesfile)
-          [false, pomfile]
+          sourcesfile = nil
+          if pom.with_sources
+            have_source = false
+            [ "-sources.jar", "-source-release.zip"].each do |suffix|
+              sourcesfile = basename + suffix
+              if Download.download(uri + "/#{sourcesfile}", sourcesfile)
+                have_source = true
+                puts "Sourcesfile #{sourcesfile}"
+                break
+              end
+            end
+            unless have_source
+              STDERR.puts "*** Can't download source for #{pom}:#{jarfile}"
+              sourcesfile = nil
+            end
+          end
+          if pom.with_sources
+            [false, pomfile, sourcesfile]
+          else
+            [false, pomfile]
+          end
         else
           nil
         end
