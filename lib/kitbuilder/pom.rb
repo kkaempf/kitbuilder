@@ -13,6 +13,10 @@ module Kitbuilder
     def self.destination= m2dir
       @@m2dir = m2dir
     end
+    # getter
+    def self.destination
+      @@m2dir
+    end
 
     #
     # download pom/jar
