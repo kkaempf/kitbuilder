@@ -52,7 +52,7 @@ end
 def help msg = nil
   STDERR.puts "*** #{msg}" if msg
   STDERR.puts "Usage:"
-  STDERR.puts "jarcheck <name> [<unpacked-rpm>]"
+  STDERR.puts "jarcheck <name> [<unpacked-rpm>] [<pomspec>]"
   STDERR.puts "to check all jars packaged in <name>*"
   exit((msg)?1:0)
 end
@@ -148,6 +148,14 @@ else
 end
 STDERR.puts "Unpacked rpm at #{unpacked_rpm}"
 
+unless ARGV.empty?
+  pom = Kitbuilder::Pom.new ARGV.shift
+  Kitbuilder::Pom.destination = File.join(Dir.pwd, "jars")
+  cached, pomfile, sourcesfile = pom.download_to Kitbuilder::Pom.destination, true # download with sources
+  puts "Cached #{cached}, pomfile #{pomfile}, sourcesfile #{sourcesfile}"
+  exit 0
+end
+
 unpacked_kit = find_unpacked_kit name
 help "Unpacked kit for '#{name}' not found" unless unpacked_kit
 
@@ -202,6 +210,7 @@ result.each do |jar,pomspec|
   if sourcesfile
     spec.add_source sourcesfile
   else
+    STDERR.puts "*** Not found: #{pomspec}"
     spec.add_source "# #{pomspec}"
   end    
 end
