@@ -33,7 +33,7 @@ module Kitbuilder
       Dir.chdir @@m2dir do
         FileUtils.mkdir_p path
         Dir.chdir path do
-          cached, pomfile, sourcesfile = Maven2.download(self) || Bintray.download(self) || Gradle.download(self) || Torquebox.download(self)
+          cached, pomfile, sourcesfile = Maven2.download(self) || Central.download(self) || Bintray.download(self) || Gradle.download(self) || Torquebox.download(self)
           case pomfile
           when ::String
             join = File.join(@@m2dir, path, pomfile)
