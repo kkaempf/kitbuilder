@@ -9,7 +9,6 @@ module Kitbuilder
       if dependency.version
         uri += "/" + dependency.version
       end
-      STDERR.puts "Central #{uri}"
       uri
     end
   end
