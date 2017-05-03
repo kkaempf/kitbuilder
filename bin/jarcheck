@@ -129,6 +129,18 @@ def extract_mavenspec path, jar
     version = dirs.pop
     name = dirs.pop
     org = dirs.join(".")
+  elsif dirs.include? "ivy"
+    # zookeeper-kit/kit/ivy/cache/jline/jline/jars/jline-0.9.94.jar
+    dirs.shift # drop unpacked_kit
+    dirs.shift # drop kit
+    dirs.shift # "ivy"
+    dirs.shift # "cache"
+    dirs.pop # "jars"
+    name = dirs.pop
+    if jar =~ Regexp.new("#{name}-(.*)\.jar")
+      version = $1
+    end
+    org = dirs.join(".")
   else
     return nil
   end
