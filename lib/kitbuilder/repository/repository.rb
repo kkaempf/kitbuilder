@@ -35,11 +35,15 @@ module Kitbuilder
           return result
         end
         jarfile = basename + ".jar"
-        testsfile = basename + "-test.jar"
+        testfile = basename + "-test.jar"
+        testsfile = basename + "-tests.jar"
+        javadocfile = basename + "-javadoc.jar"
         case Download.download(uri + "/#{pomfile}", pomfile)
         when :cached, :downloaded
           Download.download(uri + "/#{jarfile}", jarfile)
+          Download.download(uri + "/#{testfile}", testfile)
           Download.download(uri + "/#{testsfile}", testsfile)
+          Download.download(uri + "/#{javadocfile}", javadocfile)
           sourcesfile = nil
           if pom.with_sources
             have_source = false
