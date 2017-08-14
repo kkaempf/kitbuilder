@@ -33,7 +33,7 @@ module Kitbuilder
       Dir.chdir @@m2dir do
         FileUtils.mkdir_p path
         Dir.chdir path do
-          cached, pomfile, sourcesfile = Maven2.download(self) || Central.download(self) || Bintray.download(self) || Gradle.download(self) || Torquebox.download(self)
+          cached, pomfile, sourcesfile = Maven2.download(self) || Central.download(self) || JCenter.download(self) || Bintray.download(self) || Gradle.download(self) || Torquebox.download(self)
           case pomfile
           when ::String
             join = File.join(@@m2dir, path, pomfile)
@@ -172,7 +172,7 @@ module Kitbuilder
         scope = d.xpath("#{@xmlns}scope")[0].text rescue nil
         optional = d.xpath("#{@xmlns}optional")[0].text rescue nil
         pom = Pom.new( { group: group, artifact: artifact, version: version, scope: scope, optional: optional } )
-        puts "dependency pom #{pom.inspect}"
+#        puts "dependency pom #{pom.inspect}"
         yield pom
       end
     end
@@ -183,23 +183,23 @@ module Kitbuilder
     # - resolve dependencies
     #
     def resolve
-      puts "Resolving #{self}"
+#      puts "Resolving #{self}"
       # does it exist ?
       cached, result = download_to dirname
       if cached
         puts "Exists"
       else
         if result.is_a?(::String)
-          puts "Downloaded to #{result}"
+#          puts "Downloaded to #{result}"
         else
-          puts "Failed"
+          puts "Failed download #{self}"
           return
         end
       end
       parse result
       dependencies do |pom|
         pom.parent = self
-        pom.resolve
+#        pom.resolve
       end
     end
   end

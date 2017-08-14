@@ -9,10 +9,6 @@ module Kitbuilder
     def self.download pom
       basename = pom.basename
       pomfile = basename + ".pom"
-      if File.exists?(pomfile)
-#        puts "#{pomfile} exists"
-        [true, pomfile]
-      else
         uri = self.build_uri pom
 #        puts "Repository download #{uri}"
         unless pom.version
@@ -38,6 +34,7 @@ module Kitbuilder
         testfile = basename + "-test.jar"
         testsfile = basename + "-tests.jar"
         javadocfile = basename + "-javadoc.jar"
+        
         case Download.download(uri + "/#{pomfile}", pomfile)
         when :cached, :downloaded
           Download.download(uri + "/#{jarfile}", jarfile)
@@ -69,6 +66,5 @@ module Kitbuilder
           nil
         end
       end
-    end
   end
 end
