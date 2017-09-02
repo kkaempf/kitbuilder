@@ -26,8 +26,9 @@ module Kitbuilder
         FileUtils.mkdir_p dest
         FileUtils.cp path, File.join(dest, "#{pom.basename}.pom")
         jars.each do |jar|
-          puts "Dir #{dir}, jar #{jar}"
-          FileUtils.cp jar, File.join(dest, "#{pom.basename}.jar")
+          name = File.basename(jar)
+          puts "Dir #{dir}, jar #{jar}, name #{name}"
+          FileUtils.cp jar, File.join(dest, name)
         end
       end
     end
