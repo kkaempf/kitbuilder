@@ -38,8 +38,10 @@ module Kitbuilder
           dirs = path.split "/"
           js = dirs.pop
           dirs.pop # drop checksum
-          dest = File.join(mavendir, dirs.pop(3).join("/"))
-#          puts "dest #{dest}, js #{js}"
+          destdirs = dirs.pop(3)
+          toplevels = destdirs.shift.split(".")
+          dest = File.join(mavendir, (toplevels+destdirs).join("/"))
+          puts "dest #{dest}, js #{js}"
           FileUtils.mkdir_p dest
           FileUtils.cp path, File.join(dest, js)
         end
