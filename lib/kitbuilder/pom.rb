@@ -19,6 +19,20 @@ module Kitbuilder
     end
 
     #
+    # find in maven universe
+    #
+    #  returns pomfile, jarfile, sourcesfile
+    def find
+      Maven2.find(self) || Central.find(self) || JCenter.find(self) || Bintray.find(self) || Gradle.find(self) || Torquebox.find(self)
+    end
+    #
+    # download pom from maven universe
+    #  returns cached, pomfile, sourcesfile
+    def download
+      Maven2.download(self) || Central.download(self) || JCenter.download(self) || Bintray.download(self) || Gradle.download(self) || Torquebox.download(self)
+    end
+    #
+    #
     # download pom/jar
     #
     # @return full path to .pom file
@@ -33,7 +47,7 @@ module Kitbuilder
       Dir.chdir @@m2dir do
         FileUtils.mkdir_p path
         Dir.chdir path do
-          cached, pomfile, sourcesfile = Maven2.download(self) || Central.download(self) || JCenter.download(self) || Bintray.download(self) || Gradle.download(self) || Torquebox.download(self)
+          cached, pomfile, sourcesfile = self.download
           case pomfile
           when ::String
             join = File.join(@@m2dir, path, pomfile)
@@ -56,12 +70,12 @@ module Kitbuilder
             namespaces = @xml.namespaces
             @xmlns = (namespaces["xmlns"])?"xmlns:":""
           rescue Exception => e
-            STDERR.puts "Error parsing #{pomfile}: #{e}"
+            STDERR.puts "Error parsing pom #{file}: #{e}"
             raise
           end
         end
       rescue Exception => e
-        STDERR.puts "Error reading #{pomfile}: #{e}"
+        STDERR.puts "Error reading pom #{file}: #{e}"
         raise
       end
     end
@@ -75,7 +89,8 @@ module Kitbuilder
     #
     # Pom representation
     #
-    def initialize pomspec
+    def initialize pomspec, verbose = nil
+      @verbose = verbose
       artifact = nil
       case pomspec
       when Pom

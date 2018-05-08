@@ -35,20 +35,27 @@ def usage msg = nil
   STDERR.puts
   STDERR.puts "Options:"
   STDERR.puts " -D <m2-dir>     directory of maven cache"
+  STDERR.puts " -s <script-name> strip maven cache from .jars, create <script-name> to re-create them"
   STDERR.puts " -g <gradle-dir> convert gradle cache to maven cache"
   STDERR.puts " -b <build.log>  parse build log for missing pom/jar"
+  STDERR.puts " -s <script>  strip jars from <m2-dir>, write <script> to re-create them"
+  STDERR.puts " -v           verbose"
 end
 
 buildlog = nil
 m2dir = nil
 gradledir = nil
 pomdef = nil
+strip_jars = nil
+verbose = nil
 
 GetoptLong.new(
   [ '-h', '--help', GetoptLong::NO_ARGUMENT ],
   [ '-g', '--gradle', GetoptLong::REQUIRED_ARGUMENT ],
   [ '-D', '--m2dir', GetoptLong::REQUIRED_ARGUMENT ],
-  [ '-b', '--buildlog', GetoptLong::REQUIRED_ARGUMENT ]
+  [ '-b', '--buildlog', GetoptLong::REQUIRED_ARGUMENT ],
+  [ '-s', '--strip-jars', GetoptLong::REQUIRED_ARGUMENT ],
+  [ '-v', '--verbose', GetoptLong::NO_ARGUMENT ]
 ).each do |opt, arg|
   case opt
   when '-D', '--m2dir'
@@ -59,14 +66,18 @@ GetoptLong.new(
     puts "Gradle #{gradledir}"
   when '-b', '--buildlog'
     buildlog = File.expand_path(arg)
+  when '-s', '--strip-jars'
+    strip_jars = File.expand_path(arg)
+    puts "Removing jars from #{m2dir}"
+  when '-v', '--verbose'
+    verbose = true
   when '-h', '--help'
     usage
     exit 0
   end
 end
 
-kitbuilder = Kitbuilder::Kitbuilder.new m2dir
-
+kitbuilder = Kitbuilder::Kitbuilder.new m2dir, verbose
 
 if buildlog
   puts "Reading buildlog #{buildlog}"
@@ -100,6 +111,9 @@ if buildlog
 elsif gradledir
   puts "Converting gradle to maven"
   kitbuilder.gradle gradledir
+elsif strip_jars
+  puts "Writing #{strip_jars}" if verbose
+  kitbuilder.strip strip_jars
 else
   pom = ARGV.shift
   jar = ARGV.shift

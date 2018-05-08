@@ -2,6 +2,21 @@ require 'open-uri'
 
 module Kitbuilder
   class Download
+    def self.exists? uri
+      print "#{uri}\r"
+      begin
+        f = open(uri)
+      rescue OpenURI::HTTPError
+        return nil
+      rescue URI::InvalidURIError
+        STDERR.puts "\t  InvalidURIError"
+        return nil
+      rescue Exception => e
+        STDERR.puts "open(#{uri}) failed: #{e}"
+        return nil
+      end
+      true
+    end
     # lookup target in cache
     #  return :cached if cached
     #  return :downloaded if downloaded
