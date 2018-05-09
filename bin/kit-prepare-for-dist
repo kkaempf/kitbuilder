@@ -40,4 +40,5 @@ Dir.chdir(dir) do |d|
   end
   puts "Cleaning up"
   Kernel.system "rm -rf #{dir}/kit"
+  puts "Done. Now you can safely remove #{tarball}"
 end
