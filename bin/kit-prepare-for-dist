@@ -1,0 +1,43 @@
+#!/usr/bin/env ruby
+#
+# encoding: UTF-8
+#
+# Copyright (c) 2016 SUSE LINUX Products GmbH
+#
+# Author: Klaus Kämpf <kkaempf@suse.de>
+#
+
+def usage msg = nil
+  STDERR.puts "*** Failed: #{msg}" if msg
+  STDERR.puts "Usage:"
+  STDERR.puts "kit-prepare-for-dist <kit-tarball>"
+  exit 1
+end
+
+home = File.expand_path(File.dirname(__FILE__))
+
+tarball = ARGV.shift
+
+usage unless tarball
+
+usage "#{tarball} not readable" unless File.readable?(tarball)
+
+dir = File.dirname(tarball)
+basename = File.basename(tarball)
+
+Dir.chdir(dir) do |d|
+  puts "Extracting #{tarball}"
+  Kernel.system "tar xf #{tarball}"
+  puts "Searching the maven universe"
+  script = "download.sh"
+  cmd = "#{home}/kitbuilder -v -D #{dir}/kit/m2 -s #{script}"
+  Kernel.system cmd
+  s = File.read(script)
+  File.open(script, "w+") do |f|
+    f.puts s
+    f.puts "tar cjf #{basename} kit"
+    f.puts "rm -rf kit"
+  end
+  puts "Cleaning up"
+  Kernel.system "rm -rf #{dir}/kit"
+end

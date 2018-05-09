@@ -101,6 +101,14 @@ module Kitbuilder
       #   write entry to bash scrip
       # done
       puts "Looking in #{@m2dir}" if @verbose
+      script.puts "mkdir -p kit"
+      script.puts "cd kit"
+      script.puts "wget https://archive.apache.org/dist/ant/binaries/apache-ant-1.9.4-bin.tar.bz2"
+      script.puts "tar xf apache-ant-1.9.4-bin.tar.bz2"
+      script.puts "rm -f apache-ant-1.9.4-bin.tar.bz2"
+      script.puts "wget https://repo.maven.apache.org/maven2/org/apache/maven/apache-maven/3.2.5/apache-maven-3.2.5-bin.tar.gz"
+      script.puts "tar xf apache-maven-3.2.5-bin.tar.gz"
+      script.puts "rm -f apache-maven-3.2.5-bin.tar.gz"
       script.puts "mkdir -p m2"
       script.puts "cd m2"
       been_there = []
@@ -113,6 +121,7 @@ module Kitbuilder
           been_there << dir
         end
       end
+      script.puts "cd .."
       script.puts "cd .."
     end # def strip
 
