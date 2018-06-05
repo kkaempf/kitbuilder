@@ -67,14 +67,12 @@ module Kitbuilder
       pom = begin
           Pom.new File.join(dir, "#{base}.pom"), @verbose
         rescue Errno::ENOENT
-          STDERR.puts "No .pom for #{jarfile}"
-          nil
+          raise "No .pom for #{jarfile}"
         end
       res = pom.find
       uri = res[:uri]
       unless uri
-        puts "NOT FOUND #{pom}"
-        return
+        raise "NOT FOUND #{pom}"
       end
       puts "Found #{pom}"
       script.puts "# #{pom}  #{uri}"
