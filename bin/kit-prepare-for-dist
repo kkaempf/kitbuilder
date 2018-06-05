@@ -14,7 +14,7 @@ def usage msg = nil
   exit 1
 end
 
-home = File.expand_path(File.dirname(__FILE__))
+bindir = File.expand_path(File.dirname(__FILE__))
 
 tarball = ARGV.shift
 
@@ -27,14 +27,20 @@ basename = File.basename(tarball)
 
 Dir.chdir(dir) do |d|
   puts "Extracting #{tarball}"
-  Kernel.system "tar xf #{tarball}"
+  Kernel.system("tar xf #{tarball}") || exit(1)
   puts "Searching the maven universe"
-  script = "download.sh"
-  cmd = "#{home}/kitbuilder -v -D #{dir}/kit/m2 -s #{script}"
-  Kernel.system cmd
+  script = "create-tarball.sh"
+  cmd = "#{bindir}/kitbuilder -v -D #{dir}/kit/m2 -s #{script}"
+  Kernel.system(cmd) || exit(1)
   s = File.read(script)
   File.open(script, "w+") do |f|
     f.puts s
+    f.puts "mkdir kit/m2"
+    f.puts "cat > kit/m2/settings.xml <<EOF"
+    File.open(File.join(bindir, "..", "templates", "settings.xml")) do |settings|
+      f.write(settings.read.tr('`','\''))
+    end
+    f.puts "EOF"
     f.puts "tar cjf #{basename} kit"
     f.puts "rm -rf kit"
   end
