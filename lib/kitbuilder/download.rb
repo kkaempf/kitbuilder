@@ -3,16 +3,16 @@ require 'open-uri'
 module Kitbuilder
   class Download
     def self.exists? uri
-      print "#{uri}\r"
+      print "#{uri.inspect}\r"
       begin
         f = open(uri)
       rescue OpenURI::HTTPError
         return nil
       rescue URI::InvalidURIError
-        STDERR.puts "\t  InvalidURIError"
+        STDERR.puts "\n\t  InvalidURIError"
         return nil
       rescue Exception => e
-        STDERR.puts "open(#{uri}) failed: #{e}"
+        STDERR.puts "\nopen(#{uri}) failed: #{e}"
         return nil
       end
       true
