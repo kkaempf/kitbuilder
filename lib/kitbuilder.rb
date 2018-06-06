@@ -59,15 +59,21 @@ module Kitbuilder
       convert = Convert.new gradledir
       convert.convert_to @m2dir
     end
-    
+
     def handle_dir dir, file, script
-      base = File.basename(file, ".jar")
-      base = File.basename(base, ".pom")
+      base = File.basename(file, ".jar") # strip .jar
+      base = File.basename(base, ".pom") # strip .pom
 #      puts "handle #{base} in #{dir}"
       pom = begin
           Pom.new File.join(dir, "#{base}.pom"), @verbose
         rescue Errno::ENOENT
-          raise "No .pom for #{jarfile}"
+          STDERR.puts "No .pom for #{base}, trying #{base}.jar"
+          begin
+            Pom.new File.join(dir, "#{base}.jar"), @verbose
+          rescue Errno::ENOENT
+            raise "No .pom nor .jar found at #{dir} for base #{base}"
+            return
+          end
         end
       res = pom.find
       uri = res[:uri]
