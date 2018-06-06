@@ -35,7 +35,6 @@ Dir.chdir(dir) do |d|
   s = File.read(script)
   File.open(script, "w+") do |f|
     f.puts s
-    f.puts "mkdir kit/m2"
     f.puts "cat > kit/m2/settings.xml <<EOF"
     File.open(File.join(bindir, "..", "templates", "settings.xml")) do |settings|
       f.write(settings.read.tr('`','\''))
