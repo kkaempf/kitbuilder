@@ -2,7 +2,7 @@ require 'nokogiri'
 
 module Kitbuilder
   class Pom
-    attr_reader :file, :group, :artifact, :scope, :version, :parent, :with_sources
+    attr_reader :file, :group, :artifact, :scopes, :version, :parent, :with_sources
 
     MAPPING = {
       "xerces-impl" => "xercesImpl"
@@ -97,13 +97,13 @@ module Kitbuilder
         @group = pomspec.group
         artifact = pomspec.artifact
         @version = pomspec.version
-        @scope = pomspec.scope
+        @scopes = pomspec.scopes
         @optional = pomspec.optional
       when Hash
         @group = pomspec[:group]
         artifact = pomspec[:artifact]
         @version = pomspec[:version]
-        @scope = pomspec[:scope]
+        @scopes = pomspec[:scopes]
         @optional = pomspec[:optional]
       when /\.pom/ # File
         parse pomspec
@@ -121,15 +121,11 @@ module Kitbuilder
 #        puts "Pom.new(#{pomspec}) -> #{@group}:#{artifact}:#{@version}"
       when /:/
         specs = pomspec.to_s.split(':')
-        @group = specs[0]
-        artifact = specs[1]
-        if specs.size > 3
-          @scope = specs[2]
-          @version = specs[3]
-        else
-          @version = specs[2]
-        end
-#        puts "@group #{@group.inspect}, artifact #{artifact.inspect}, @scope  #{@scope.inspect}, @version #{@version.inspect}"
+        @group = specs.shift
+        artifact = specs.shift
+        @version = specs.pop # version is always last
+        @scopes = specs
+#        puts "@group #{@group.inspect}, artifact #{artifact.inspect}, @scopes  #{@scopes.inspect}, @version #{@version.inspect}"
       else
         STDERR.puts "Unrecognized pomspec >#{pomspec.inspect}<"
       end
@@ -152,23 +148,23 @@ module Kitbuilder
     # scope accessors
     #
     def test?
-      @scope == "test"
+      @scopes.include? "test"
     end
     def runtime?
-      @scope == "runtime"
+      @scopes.include? "runtime"
     end
     def compile?
-      @scope == "compile"
+      @scopes.include? "compile"
     end
     #
     # String representation
     #
     def to_s
       s = "#{@group}:#{@artifact}" + (@version?":#{@version}":"")
-      if @optional||@scope
+      if @optional||@scopes
         s += "<"
         s += "opt:" if @optional
-        s += @scope if @scope
+        s += @scopes if @scopes
         s += ">"
       end
       if @parent
@@ -200,7 +196,7 @@ module Kitbuilder
         version = d.xpath("#{@xmlns}version")[0].text rescue nil
         scope = d.xpath("#{@xmlns}scope")[0].text rescue nil
         optional = d.xpath("#{@xmlns}optional")[0].text rescue nil
-        pom = Pom.new( { group: group, artifact: artifact, version: version, scope: scope, optional: optional } )
+        pom = Pom.new( { group: group, artifact: artifact, version: version, scopes: scope, optional: optional } )
 #        puts "dependency pom #{pom.inspect}"
         yield pom
       end
