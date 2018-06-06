@@ -123,6 +123,12 @@ module Kitbuilder
         @group = $1
         artifact = $2
         @version = ($3 ? $4 : nil)
+        # @version could be "jar:2.4"
+        versions = @version.split(':')
+        if versions.size > 1
+          @version = versions.pop
+        end
+        puts "@group #{@group.inspect}, artifact #{artifact.inspect}, @version #{@version.inspect}"
       else
         STDERR.puts "Unrecognized pomspec >#{pomspec.inspect}<"
       end
