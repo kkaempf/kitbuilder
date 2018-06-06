@@ -7,6 +7,8 @@
 # Author: Klaus Kämpf <kkaempf@suse.de>
 #
 
+require 'tmpdir'
+
 def usage msg = nil
   STDERR.puts "*** Failed: #{msg}" if msg
   STDERR.puts "Usage:"
@@ -22,15 +24,20 @@ usage unless tarball
 
 usage "#{tarball} not readable" unless File.readable?(tarball)
 
-dir = File.dirname(tarball)
+dir = File.expand_path(File.dirname(tarball))
 basename = File.basename(tarball)
 
-Dir.chdir(dir) do |d|
+basename_extension = File.extname(basename)
+
+pwd = Dir.pwd
+
+::Dir.mktmpdir do |tmp|
+  ::Dir.chdir tmp do |d|
   puts "Extracting #{tarball}"
   Kernel.system("tar xf #{tarball}") || exit(1)
   puts "Searching the maven universe"
-  script = "create-tarball.sh"
-  cmd = "#{bindir}/kitbuilder -v -D #{dir}/kit/m2 -s #{script}"
+  script = File.join(pwd, "create-tarball.sh")
+  cmd = "#{bindir}/kitbuilder -v -D #{tmp}/kit/m2 -s #{script}"
   Kernel.system(cmd) || exit(1)
   s = File.read(script)
   File.open(script, "w+") do |f|
@@ -40,10 +47,9 @@ Dir.chdir(dir) do |d|
       f.write(settings.read.tr('`','\''))
     end
     f.puts "EOF"
-    f.puts "tar cjf #{basename} kit"
+    f.puts "tar c" + ((basename_extension=="xz")?"J":"j") + "f #{basename} kit"
     f.puts "rm -rf kit"
   end
-  puts "Cleaning up"
-  Kernel.system "rm -rf #{dir}/kit"
   puts "Done. Now you can safely remove #{tarball}"
+end
 end
