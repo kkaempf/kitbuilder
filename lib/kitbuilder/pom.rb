@@ -2,7 +2,7 @@ require 'nokogiri'
 
 module Kitbuilder
   class Pom
-    attr_reader :file, :group, :artifact, :version, :parent, :with_sources
+    attr_reader :file, :group, :artifact, :scope, :version, :parent, :with_sources
 
     MAPPING = {
       "xerces-impl" => "xercesImpl"
@@ -118,17 +118,18 @@ module Kitbuilder
         @version = dirs.pop
         artifact = dirs.pop
         @group = dirs.join('.')
-        puts "Pom.new(#{pomspec}) -> #{@group}:#{artifact}:#{@version}"
-      when /([^:]+):([^:]+)(:(.+))?/
-        @group = $1
-        artifact = $2
-        @version = ($3 ? $4 : nil)
-        # @version could be "jar:2.4"
-        versions = @version.split(':')
-        if versions.size > 1
-          @version = versions.pop
+#        puts "Pom.new(#{pomspec}) -> #{@group}:#{artifact}:#{@version}"
+      when /:/
+        specs = pomspec.to_s.split(':')
+        @group = specs[0]
+        artifact = specs[1]
+        if specs.size > 3
+          @scope = specs[2]
+          @version = specs[3]
+        else
+          @version = specs[2]
         end
-        puts "@group #{@group.inspect}, artifact #{artifact.inspect}, @version #{@version.inspect}"
+#        puts "@group #{@group.inspect}, artifact #{artifact.inspect}, @scope  #{@scope.inspect}, @version #{@version.inspect}"
       else
         STDERR.puts "Unrecognized pomspec >#{pomspec.inspect}<"
       end
