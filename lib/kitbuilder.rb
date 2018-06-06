@@ -86,7 +86,7 @@ module Kitbuilder
       script.puts "pushd #{dir}"
       res.each do |k,v|
         next if k == :uri
-        script.print "# " unless [:jar, :jarsha1, :pom, :pomsha1].include? k
+        script.print "# " unless [:jar, :jarsha1, :pom, :pomsha1, :signature].include? k
         script.puts "wget -q #{uri}/#{v}"
       end
       script.puts "popd"
@@ -117,7 +117,7 @@ module Kitbuilder
       script.puts "cd m2"
       been_there = []
       Dir.chdir(@m2dir) do |d|
-        Dir.glob("**/*.{jar,pom}") do |f|
+        Dir.glob("**/*.{jar,pom,signature}") do |f|
           dir = File.dirname(f)
 #          puts "found #{f} in #{dir}"
           next if been_there.include? dir

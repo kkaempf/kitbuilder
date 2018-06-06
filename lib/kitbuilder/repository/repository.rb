@@ -35,7 +35,8 @@ module Kitbuilder
         tests: "-tests.jar",
         javadoc: "-javadoc.jar",
         runtime: "-runtime.jar",
-        source_release: "-source-release.zip" }.each do |symbol, suffix|
+        source_release: "-source-release.zip",
+        signature: ".signature" }.each do |symbol, suffix|
         file = basename + suffix
         if Download.exists?(uri + "/#{file}")
           res[:uri] = uri if res.empty?
