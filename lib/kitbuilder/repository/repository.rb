@@ -34,8 +34,8 @@ module Kitbuilder
         test: "-test.jar",
         tests: "-tests.jar",
         javadoc: "-javadoc.jar",
-        runtime: "-runtime.jar" }.each do |symbol, suffix|
-        
+        runtime: "-runtime.jar",
+        source_release: "-source-release.zip" }.each do |symbol, suffix|
         file = basename + suffix
         if Download.exists?(uri + "/#{file}")
           res[:uri] = uri if res.empty?
