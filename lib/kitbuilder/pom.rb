@@ -105,13 +105,20 @@ module Kitbuilder
         @version = pomspec[:version]
         @scope = pomspec[:scope]
         @optional = pomspec[:optional]
-      when /\.pom/
+      when /\.pom/ # File
         parse pomspec
         project = @xml.xpath("/#{@xmlns}project")
-        @group = project.xpath("#{@xmlns}groupId")[0].text rescue project.xpath("#{@xmlns}parent/#{@xmlns}groupId")[0].text 
-        artifact = project.xpath("#{@xmlns}artifactId")[0].text
-        @version = project.xpath("#{@xmlns}version")[0].text rescue project.xpath("#{@xmlns}parent/#{@xmlns}version")[0].text 
+        @group = project.xpath("#{@xmlns}groupId")[0].text.strip rescue project.xpath("#{@xmlns}parent/#{@xmlns}groupId")[0].text.strip
+        artifact = project.xpath("#{@xmlns}artifactId")[0].text.strip
+        @version = project.xpath("#{@xmlns}version")[0].text.strip rescue project.xpath("#{@xmlns}parent/#{@xmlns}version")[0].text.strip
         @file = pomspec
+      when /\.jar/ # File
+        dirs = pomspec.to_s.split('/')
+        dirs.pop # .jar file
+        @version = dirs.pop
+        artifact = dirs.pop
+        @group = dirs.join('.')
+        puts "Pom.new(#{pomspec}) -> #{@group}:#{artifact}:#{@version}"
       when /([^:]+):([^:]+)(:(.+))?/
         @group = $1
         artifact = $2
