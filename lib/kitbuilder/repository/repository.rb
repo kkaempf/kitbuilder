@@ -33,7 +33,8 @@ module Kitbuilder
         src: "-sources.jar",
         test: "-test.jar",
         tests: "-tests.jar",
-        javadoc: "-javadoc.jar" }.each do |symbol, suffix|
+        javadoc: "-javadoc.jar",
+        runtime: "-runtime.jar" }.each do |symbol, suffix|
         
         file = basename + suffix
         if Download.exists?(uri + "/#{file}")
