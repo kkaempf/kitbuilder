@@ -34,7 +34,8 @@ pwd = Dir.pwd
 ::Dir.mktmpdir do |tmp|
   ::Dir.chdir tmp do |d|
   puts "Extracting #{tarball}"
-  Kernel.system("tar xf #{tarball}") || exit(1)
+  tarpath = File.join(pwd, tarball)
+  Kernel.system("tar xf #{tarpath}") || exit(1)
   puts "Searching the maven universe"
   script = File.join(pwd, "create-tarball.sh")
   cmd = "#{bindir}/kitbuilder -v -D #{tmp}/kit/m2 -s #{script}"
@@ -47,7 +48,7 @@ pwd = Dir.pwd
       f.write(settings.read.tr('`','\''))
     end
     f.puts "EOF"
-    f.puts "tar c" + ((basename_extension=="xz")?"J":"j") + "f #{basename} kit"
+    f.puts "tar c" + ((basename_extension==".xz")?"J":"j") + "f #{basename} kit"
     f.puts "rm -rf kit"
   end
   puts "Done. Now you can safely remove #{tarball}"
