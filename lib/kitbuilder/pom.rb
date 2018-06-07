@@ -164,7 +164,7 @@ module Kitbuilder
       if @optional||@scopes
         s += "<"
         s += "opt:" if @optional
-        s += @scopes if @scopes
+        s += @scopes.join(",") if @scopes
         s += ">"
       end
       if @parent
