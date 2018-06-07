@@ -78,9 +78,10 @@ module Kitbuilder
       res = pom.find
       uri = res[:uri]
       unless uri
-        raise "NOT FOUND #{pom}"
+        STDERR.puts "\n\e[31mNOT FOUND #{pom}\e[0m"
+        return
       end
-      puts "Found #{pom}"
+      puts "Found #{pom}\e[K"
       script.puts "# #{pom}  #{uri}"
       script.puts "mkdir -p #{dir}"
       script.puts "pushd #{dir}"
@@ -107,12 +108,30 @@ module Kitbuilder
       puts "Looking in #{@m2dir}" if @verbose
       script.puts "mkdir -p kit"
       script.puts "cd kit"
-      script.puts "wget https://archive.apache.org/dist/ant/binaries/apache-ant-1.9.4-bin.tar.bz2"
-      script.puts "tar xf apache-ant-1.9.4-bin.tar.bz2"
-      script.puts "rm -f apache-ant-1.9.4-bin.tar.bz2"
-      script.puts "wget https://repo.maven.apache.org/maven2/org/apache/maven/apache-maven/3.2.5/apache-maven-3.2.5-bin.tar.gz"
-      script.puts "tar xf apache-maven-3.2.5-bin.tar.gz"
-      script.puts "rm -f apache-maven-3.2.5-bin.tar.gz"
+      kitdir = File.dirname @m2dir
+      # find ant
+      # find maven
+      # find gradle
+      Dir.foreach(kitdir) do |name|
+        case name
+        when /apache-ant-(\d+\.\d+.\d+)/
+          version = $1
+          STDERR.puts "ant version #{version}"
+          script.puts "wget https://archive.apache.org/dist/ant/binaries/apache-ant-#{version}-bin.tar.bz2"
+          script.puts "tar xf apache-ant-#{version}-bin.tar.bz2"
+          script.puts "rm -f apache-ant-#{version}-bin.tar.bz2"
+        when /apache-maven-(\d+\.\d+.\d+)/
+          version = $1
+          STDERR.puts "maven version #{version}"
+          script.puts "wget https://repo.maven.apache.org/maven2/org/apache/maven/apache-maven/#{version}/apache-maven-#{version}-bin.tar.gz"
+          script.puts "tar xf apache-maven-#{version}-bin.tar.gz"
+          script.puts "rm -f apache-maven-#{version}-bin.tar.gz"
+        when "jars", "m2", ".", "..", ".keep"
+          # skip
+        else
+          STDERR.puts "\e[33mUnknown #{kitdir}/#{name}\e[0m"
+        end
+      end
       script.puts "mkdir -p m2"
       script.puts "cd m2"
       been_there = []
