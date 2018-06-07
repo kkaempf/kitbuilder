@@ -38,6 +38,7 @@ module Kitbuilder
       @m2dir = m2dir
       @verbose = verbose
       Pom.destination = @m2dir
+      @notfound = []
     end
     # specify .jar to download
     def jar= j
@@ -79,9 +80,10 @@ module Kitbuilder
       uri = res[:uri]
       unless uri
         STDERR.puts "\n\e[31mNOT FOUND #{pom}\e[0m"
-        return
+        @notfound << pom
+      else
+        puts "Found #{pom}\e[K"
       end
-      puts "Found #{pom}\e[K"
       script.puts "# #{pom}  #{uri}"
       script.puts "mkdir -p #{dir}"
       script.puts "pushd #{dir}"
@@ -97,6 +99,7 @@ module Kitbuilder
     # write bash script to re-create
     #
     def strip bash_script
+      @notfound = [] # collecting poms not found
       script = File.open(bash_script, "w+")
       raise "Can't open #{bash_script}" unless script
       # for each .jar in @m2dir do
@@ -146,6 +149,9 @@ module Kitbuilder
       end
       script.puts "cd .."
       script.puts "cd .."
+      @notfound.each do |pom|
+        STDERR.puts "*** Pom not found: #{pom}"
+      end
     end # def strip
 
   end # class
