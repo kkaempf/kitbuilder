@@ -29,7 +29,7 @@ module Kitbuilder
         begin
           stream = open(uri)
           IO.copy_stream stream, target
-          puts "#{target} downloaded to #{Dir.pwd}"
+          puts "#{target} downloaded to #{Dir.pwd} from #{uri}"
         rescue OpenURI::HTTPError
           return nil
         rescue URI::InvalidURIError
