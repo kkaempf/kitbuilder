@@ -23,13 +23,13 @@ module Kitbuilder
     #
     #  returns pomfile, jarfile, sourcesfile
     def find
-      Maven2.find(self) || Central.find(self) || JCenter.find(self) || Bintray.find(self) || Gradle.find(self) || Torquebox.find(self)
+      Maven2.find(self) || Central.find(self) || JCenter.find(self) || Bintray.find(self) || Gradle.find(self) || Torquebox.find(self) || JBoss.find(self) || GeoMajas.find(self)
     end
     #
     # download pom from maven universe
     #  returns cached, pomfile, sourcesfile
     def download
-      Maven2.download(self) || Central.download(self) || JCenter.download(self) || Bintray.download(self) || Gradle.download(self) || Torquebox.download(self)
+      Maven2.download(self) || Central.download(self) || JCenter.download(self) || Bintray.download(self) || Gradle.download(self) || Torquebox.download(self) || JBoss.download(self) || GeoMajas.download(self)
     end
     #
     #
@@ -155,6 +155,9 @@ module Kitbuilder
     end
     def compile?
       @scopes.include? "compile"
+    end
+    def zip?
+      @scopes.include? "zip"
     end
     #
     # String representation
