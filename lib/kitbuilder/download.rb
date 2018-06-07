@@ -3,7 +3,7 @@ require 'open-uri'
 module Kitbuilder
   class Download
     def self.exists? uri
-      print "#{uri.inspect}\r"
+      print "#{uri.inspect}\e[K\r" # erase to end of line, back to column 0
       begin
         f = open(uri)
       rescue OpenURI::HTTPError
