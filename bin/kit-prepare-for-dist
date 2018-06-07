@@ -34,7 +34,7 @@ pwd = Dir.pwd
 ::Dir.mktmpdir do |tmp|
   ::Dir.chdir tmp do |d|
   puts "Extracting #{tarball}"
-  tarpath = File.join(pwd, tarball)
+  tarpath = File.join(dir, basename)
   Kernel.system("tar xf #{tarpath}") || exit(1)
   puts "Searching the maven universe"
   script = File.join(pwd, "create-tarball.sh")
