@@ -65,22 +65,14 @@ module Kitbuilder
       base = File.basename(file, ".jar") # strip .jar
       base = File.basename(base, ".pom") # strip .pom
 #      puts "handle #{base} in #{dir}"
-      pom = begin
-          Pom.new File.join(dir, "#{base}.pom"), @verbose
-        rescue Errno::ENOENT
-          STDERR.puts "No .pom for #{base}, trying #{base}.jar"
-          begin
-            Pom.new File.join(dir, "#{base}.jar"), @verbose
-          rescue Errno::ENOENT
-            raise "No .pom nor .jar found at #{dir} for base #{base}"
-            return
-          end
-        end
+      pom = Pom.new [dir, base], @verbose
       res = pom.find
+#      puts "\n#{pom}.find => #{res.inspect}"
       uri = res[:uri]
       unless uri
         STDERR.puts "\n\e[31mNOT FOUND #{pom}\e[0m"
         @notfound << pom
+        exit 1
       else
         puts "Found #{pom}\e[K"
       end
@@ -89,7 +81,7 @@ module Kitbuilder
       script.puts "pushd #{dir}"
       res.each do |k,v|
         next if k == :uri
-        script.print "# " unless [:jar, :jarsha1, :pom, :pomsha1, :zip, :signature, :noaop].include? k
+        script.print "# " unless [:jar, :jarsha1, :pom, :pomsha1, :zip, :ns_resources, :signature, :noaop].include? k
         script.puts "wget -q #{uri}/#{v}"
       end
       script.puts "popd"
