@@ -29,8 +29,10 @@ module Kitbuilder
           file = basename + suffix
 #          puts "check [#{symbol},#{suffix}] #{file.inspect}"
           if Download.exists?(uri + "/#{file}")
-            res = {}
-            res[:uri] = uri if res.empty?
+            unless res
+              res = {}
+              res[:uri] = uri
+            end
             res[symbol] = file
           end
         end
