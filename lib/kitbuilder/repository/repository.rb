@@ -18,31 +18,25 @@ module Kitbuilder
     #
     #  returns pomfile, jarfile, sourcesfile
     def self.find pom
-      res = {}
+      res = nil
       basename = pom.basename
       pomfile = basename + ".pom"
       uri = self.build_uri pom
-      unless pom.version
+#      puts "repository.rb find uri #{uri.inspect}"
+      if pom.version
+        # get all relevant files
+        pom.relevant_mapping.each do |symbol, suffix|
+          file = basename + suffix
+#          puts "check [#{symbol},#{suffix}] #{file.inspect}"
+          if Download.exists?(uri + "/#{file}")
+            res = {}
+            res[:uri] = uri if res.empty?
+            res[symbol] = file
+          end
+        end
+      else
         mavenname = "maven-metadata.xml"
         puts "Lookup latest version from #{mavenname}"
-        return nil
-      end
-      # get all relevant files
-      { jar: ".jar", jarsha1: ".jar.sha1",
-        pom: ".pom", pomsha1: ".pom.sha1",
-        src: "-sources.jar",
-        test: "-test.jar",
-        tests: "-tests.jar",
-        javadoc: "-javadoc.jar",
-        runtime: "-runtime.jar",
-        source_release: "-source-release.zip",
-        signature: ".signature",
-        noaop: "-noaop.jar" }.each do |symbol, suffix|
-        file = basename + suffix
-        if Download.exists?(uri + "/#{file}")
-          res[:uri] = uri if res.empty?
-          res[symbol] = file
-        end
       end
       res
     end

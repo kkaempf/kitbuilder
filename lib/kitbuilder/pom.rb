@@ -5,8 +5,37 @@ module Kitbuilder
     attr_reader :file, :group, :artifact, :scopes, :version, :parent, :with_sources
 
     MAPPING = {
-      "xerces-impl" => "xercesImpl"
+      "xerces-impl" => "xercesImpl",
+      "jsr94-sigtest" => "jsr94"
     }
+    
+    EXTENSIONS = [
+      ".pom", ".jar", ".pom.sha1", ".jar.sha1",
+      ".zip", ".signature"
+    ]
+    def extensions
+      EXTENSIONS
+    end
+
+    RELEVANT_MAPPING = {
+      jar: ".jar", jarsha1: ".jar.sha1",
+      pom: ".pom", pomsha1: ".pom.sha1",
+      src: "-sources.jar",
+      test: "-test.jar",
+      tests: "-tests.jar",
+      javadoc: "-javadoc.jar",
+      runtime: "-runtime.jar",
+      source_release: "-source-release.zip",
+      signature: ".signature",
+      noaop: "-noaop.jar",
+      zip: ".zip",
+      ns_resources: "-ns-resources.zip"
+    }
+
+    def relevant_mapping
+      RELEVANT_MAPPING
+    end
+
     #
     # set download directory
     #
@@ -105,6 +134,31 @@ module Kitbuilder
         @version = pomspec[:version]
         @scopes = pomspec[:scopes]
         @optional = pomspec[:optional]
+      when Array # dir, base
+        dir, base = pomspec
+        dirs = dir.split("/")
+        @version = dirs.pop
+        artifact = dirs.pop
+        @group = dirs.join('.')
+        bases = base.split("-")
+        @scopes = []
+        Dir.foreach(dir) do |entry|
+#          puts entry.inspect
+          # docbook-xsl-1.76.1-ns-resources.zip
+          # <base>-<version>-<scopes>.<extensions>
+          #        $1        $3       $4
+          next if entry =~ /\.lastUpdated/
+          next unless entry =~ /#{base}\-?([^\.]*)\.(.+)/
+#          puts "found #{$1.inspect},#{$2.inspect} for #{entry.inspect}"
+          [$1, $2].each do |scope|
+            next if scope.empty?
+            next if scope == "pom"
+            next if scope =~ /sha1/
+            @scopes << scope
+          end
+        end
+        @scopes.uniq!
+#        puts "Pom.new(#{pomspec.inspect}) -> #{@group}:#{artifact}:#{@version.inspect}:#{@scopes.inspect}"
       when /\.pom/ # File
         parse pomspec
         project = @xml.xpath("/#{@xmlns}project")
