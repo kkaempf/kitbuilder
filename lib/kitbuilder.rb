@@ -81,7 +81,7 @@ module Kitbuilder
       script.puts "pushd #{dir}"
       res.each do |k,v|
         next if k == :uri
-        script.print "# " unless [:jar, :jarsha1, :pom, :pomsha1, :zip, :ns_resources, :signature, :noaop].include? k
+        script.print "# " unless pom.wgets.include? k
         script.puts "wget -q #{uri}/#{v}"
       end
       script.puts "popd"

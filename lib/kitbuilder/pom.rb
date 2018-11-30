@@ -2,7 +2,7 @@ require 'nokogiri'
 
 module Kitbuilder
   class Pom
-    attr_reader :file, :group, :artifact, :scopes, :version, :parent, :with_sources
+    attr_reader :file, :group, :artifact, :scopes, :version, :parent, :with_sources, :verbose
 
     MAPPING = {
       "xerces-impl" => "xercesImpl",
@@ -33,9 +33,22 @@ module Kitbuilder
     }
 
     def relevant_mapping
-      RELEVANT_MAPPING
+      RELEVANT_MAPPING.merge(@scopes.map { |s| { s.to_sym => s } })
     end
 
+    # WGETS
+    # keys of RELEVANT_MAPPING I want to wget
+    WGETS = [:jar, :jarsha1,
+      :pom, :pomsha1,
+      :zip,
+      :ns_resources,
+      :signature,
+      :noaop
+    ]
+    
+    def wgets
+      WGETS + @scopes.map{|s| s.to_sym}
+    end
     #
     # set download directory
     #
@@ -52,13 +65,13 @@ module Kitbuilder
     #
     #  returns pomfile, jarfile, sourcesfile
     def find
-      Maven2.find(self) || Central.find(self) || JCenter.find(self) || Bintray.find(self) || Gradle.find(self) || Torquebox.find(self) || JBoss.find(self) || GeoMajas.find(self)
+      Maven2.find(self) || Central.find(self) || JCenter.find(self) || Bintray.find(self) || Gradle.find(self) || GradleLocal.find(self) || Torquebox.find(self) || JBoss.find(self) || GeoMajas.find(self)
     end
     #
     # download pom from maven universe
     #  returns cached, pomfile, sourcesfile
     def download
-      Maven2.download(self) || Central.download(self) || JCenter.download(self) || Bintray.download(self) || Gradle.download(self) || Torquebox.download(self) || JBoss.download(self) || GeoMajas.download(self)
+      Maven2.download(self) || Central.download(self) || JCenter.download(self) || Bintray.download(self) || Gradle.download(self) || GradleLocal.download(self) || Torquebox.download(self) || JBoss.download(self) || GeoMajas.download(self)
     end
     #
     #
@@ -179,7 +192,7 @@ module Kitbuilder
         artifact = specs.shift
         @version = specs.pop # version is always last
         @scopes = specs
-#        puts "@group #{@group.inspect}, artifact #{artifact.inspect}, @scopes  #{@scopes.inspect}, @version #{@version.inspect}"
+        puts "@group #{@group.inspect}, artifact #{artifact.inspect}, @scopes  #{@scopes.inspect}, @version #{@version.inspect}"
       else
         STDERR.puts "Unrecognized pomspec >#{pomspec.inspect}<"
       end

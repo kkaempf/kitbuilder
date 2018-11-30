@@ -21,7 +21,7 @@ module Kitbuilder
     #  return :cached if cached
     #  return :downloaded if downloaded
     #  return nil if not found
-    def self.download uri, target
+    def self.download uri, target, verbose = nil
       if File.exists?(target)
         puts "#{target} cached in #{Dir.pwd}"
         :cached 
@@ -31,8 +31,10 @@ module Kitbuilder
           IO.copy_stream stream, target
           puts "#{target} downloaded to #{Dir.pwd} from #{uri}"
           return :downloaded
-        rescue OpenURI::HTTPError
-        rescue URI::InvalidURIError
+        rescue OpenURI::HTTPError => e
+          STDERR.puts "*** HTTPError: #{uri} (#{e})"
+        rescue URI::InvalidURIError => e
+          STDERR.puts "*** InvalidURI: #{uri} (#{e})"
         end
         nil
       end
