@@ -74,18 +74,18 @@ module Kitbuilder
       testsfile = basename + "-tests.jar"
       javadocfile = basename + "-javadoc.jar"
         
-      case Download.download(uri + "/#{pomfile}", pomfile)
+      case Download.download(uri + "/#{pomfile}", pomfile, pom.verbose)
       when :cached, :downloaded
-        Download.download(uri + "/#{jarfile}", jarfile)
-        Download.download(uri + "/#{testfile}", testfile)
-        Download.download(uri + "/#{testsfile}", testsfile)
-        Download.download(uri + "/#{javadocfile}", javadocfile)
+        Download.download(uri + "/#{jarfile}", jarfile, pom.verbose)
+        Download.download(uri + "/#{testfile}", testfile, pom.verbose)
+        Download.download(uri + "/#{testsfile}", testsfile, pom.verbose)
+        Download.download(uri + "/#{javadocfile}", javadocfile, pom.verbose)
         sourcesfile = nil
         if pom.with_sources
           have_source = false
           [ "-sources.jar", "-source-release.zip"].each do |suffix|
             sourcesfile = basename + suffix
-            if Download.download(uri + "/#{sourcesfile}", sourcesfile)
+            if Download.download(uri + "/#{sourcesfile}", sourcesfile, pom.verbose)
               have_source = true
               puts "Sourcesfile #{sourcesfile}"
               break
