@@ -54,6 +54,7 @@ def help msg = nil
   STDERR.puts "Usage:"
   STDERR.puts "jarcheck <name> [<unpacked-rpm>] [<pomspec>]"
   STDERR.puts "to check all jars packaged in <name>*"
+  STDERR.puts "Put the kit tarball's kit/ directory into <name>-kit/"
   exit((msg)?1:0)
 end
 
@@ -93,7 +94,7 @@ def find_all_jars_under dir
     if b =~ /.*\.jar/
       if jars[b]
         STDERR.puts "Dup #{path},#{jars[b]}"
-        return nil
+        next
       end
       jars[b] = path
     end
@@ -205,8 +206,6 @@ unresolved = rpm_jars - result.keys
 unresolved.each do |jar|
   STDERR.puts "*** Unresolved #{jar}"
 end
-
-exit 1 unless unresolved.empty?
 
 Kitbuilder::Pom.destination = File.join(Dir.pwd, "jars")
 
