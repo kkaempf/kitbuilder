@@ -90,6 +90,10 @@ end
 def find_all_jars_under dir
   jars = {}
   Find.find(dir) do |path|
+    # Ignore Maven/Ant shipped by Tetra
+    if path.include?("kit/apache-ant") or path.include?("kit/apache-maven")
+      next
+    end
     b = File.basename path
     if b =~ /.*\.jar/
       if jars[b]
@@ -194,7 +198,11 @@ rpm_jars.each do |jar|
 #      puts "#{jar}: #{spec}"
       result[jar] = spec
     else
-      STDERR.puts "*** No spec #{jar}:#{jarpath}"
+      # Doesn't matter if we do not have a spec for jars in the apache-ant or
+      # apache-maven directories shipped by Tetra itself.
+      unless jarpath.include?("kit/apache-ant") or jarpath.include?("kit/apache-maven")
+        STDERR.puts "*** No spec #{jar}:#{jarpath}"
+      end
     end
   end
 end
@@ -202,10 +210,7 @@ end
 puts "#{rpm_jars.size} rpm jars, #{result.size} tracked"
 
 unresolved = rpm_jars - result.keys
-
-unresolved.each do |jar|
-  STDERR.puts "*** Unresolved #{jar}"
-end
+download_failed = []
 
 Kitbuilder::Pom.destination = File.join(Dir.pwd, "jars")
 
@@ -221,9 +226,26 @@ result.each do |jar,pomspec|
   if sourcesfile
     spec.add_source sourcesfile
   else
-    STDERR.puts "*** Not found: #{pomspec}"
-    spec.add_source "# #{pomspec}"
+    # We may have .sha1 files in there, so skip everything that's not jar.
+    unless jar.end_with?('.jar')
+      next
+    end
+    STDERR.puts "*** Source download failed: #{pomspec}"
+    spec.add_source "# #{pomspec} # Source download failed"
+    download_failed.push jar
   end    
 end
 
 spec.write
+
+unless unresolved.empty? and download_failed.empty?
+  unresolved.each do |jar|
+    STDERR.puts "*** Unresolved: #{jar}"
+    spec.add_source "# #{File.basename jar} # Unresolved"
+  end
+
+  download_failed.each do |jar|
+    STDERR.puts "*** Source download failed for #{jar}"
+  end
+  exit 1
+end
