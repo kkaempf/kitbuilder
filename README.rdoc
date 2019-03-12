@@ -6,6 +6,39 @@
 
 A simpler way to builder -kit for building Java packages
 
+== Generating source packages
+
+The `jarcheck` utility can generate source packages from a
+[Tetra](https://github.com/moio/tetra) kit tarball. To use it, proceed as
+follows:
+
+1. Change to the future source package's directory.
+
+2. Create a directory to unpack the kit tarball in. This directory must be
+   named `<name>-kit`, where `<name>` is the main package's name. Example: if
+   your main package is named `foo`, this directory must be named `foo-kit`.
+
+3. Unpack the kit tarball into the directory created in step (2). Example for a
+   package named `foo`: `tar -C foo-kit -xJf foo-kit.tar.xz`
+
+4. Run `jarcheck`. It takes two (mandatory) arguments: the package's name and
+   the kit package's name. Example for a package named `foo`: `jarcheck foo
+   foo-kit`.
+
+5. You should now find all jars required for a source package, along with a
+   generated source package spec in the current directory. If `jarcheck` cannot
+   find a jar file's source package name or fails to download it, it will
+   output an error message about the package and exit non-zero. The spec will
+   still be generated, but the `Source` file name for this particular jar file
+   will be commented out in the spec.
+
+6. Download all non-retrievable source jars manually and fix the corresponding
+   lines in the spec file.
+
+7. Correct the version in the spec file to match your package's version (this
+   information is not retrievable from the kit tarball, so you will need to fill
+   it in manually).
+
 == Authors
 
 * Klaus Kämpf <kkaempf@suse.de>
