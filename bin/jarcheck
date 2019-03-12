@@ -31,7 +31,10 @@ class Spec
 
   def add_source source
     puts "spec.add_source #{source}"
-    @sources << source
+    # Avoid duplicates
+    unless @sources.include? source
+      @sources << source
+    end
   end
 
   def write
