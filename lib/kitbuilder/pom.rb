@@ -142,6 +142,7 @@ module Kitbuilder
     def initialize pomspec, verbose = nil
       @verbose = verbose
       artifact = nil
+      @properties = {}
       case pomspec
       when Pom
         @group = pomspec.group
@@ -149,6 +150,7 @@ module Kitbuilder
         @version = pomspec.version
         @scopes = pomspec.scopes
         @optional = pomspec.optional
+        @properties = pomspec.properties
       when Hash
         @group = pomspec[:group]
         artifact = pomspec[:artifact]
@@ -184,8 +186,17 @@ module Kitbuilder
         parse pomspec
         project = @xml.xpath("/#{@xmlns}project")
         @group = project.xpath("#{@xmlns}groupId")[0].text.strip rescue project.xpath("#{@xmlns}parent/#{@xmlns}groupId")[0].text.strip
+        @properties["project.groupId"] = @group
         artifact = project.xpath("#{@xmlns}artifactId")[0].text.strip
         @version = project.xpath("#{@xmlns}version")[0].text.strip rescue project.xpath("#{@xmlns}parent/#{@xmlns}version")[0].text.strip
+        @properties["project.version"] = @version
+        properties = project.xpath("#{@xmlns}properties")[0]
+        properties.children.each do |child|
+          case child
+          when Nokogiri::XML::Element
+            @properties[child.name] = child.text.strip
+          end
+        end
         @file = pomspec
       when /\.jar/ # File
         dirs = pomspec.to_s.split('/')
@@ -205,6 +216,7 @@ module Kitbuilder
         STDERR.puts "Unrecognized pomspec >#{pomspec.inspect}<"
       end
       @artifact = MAPPING[artifact] || artifact
+      @properties["project.artifactId"] = @artifact
     end
     #
     # Compare
@@ -268,13 +280,24 @@ module Kitbuilder
       path
     end
     #
+    # @properties lookup
+    #
+    def lookup p
+      if p && (p[0,2] == "${")
+        @properties[p]
+      else
+        p
+      end
+    end
+    #
     # dependencies
     #
     def dependencies
       @xml.xpath("//#{@xmlns}dependency | //#{@xmlns}parent").each do |d|
         group = d.xpath("#{@xmlns}groupId")[0].text
-        artifact = d.xpath("#{@xmlns}artifactId")[0].text
-        version = d.xpath("#{@xmlns}version")[0].text rescue nil
+        artifact = lookup( d.xpath("#{@xmlns}artifactId")[0].text)
+        v = d.xpath("#{@xmlns}version")[0].text rescue nil
+        version = lookup v
         scope = d.xpath("#{@xmlns}scope")[0].text rescue nil
         optional = d.xpath("#{@xmlns}optional")[0].text rescue nil
         pom = Pom.new( { group: group, artifact: artifact, version: version, scopes: scope, optional: optional } )
