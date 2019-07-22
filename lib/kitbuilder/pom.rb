@@ -4,11 +4,14 @@ module Kitbuilder
   class Pom
     attr_reader :file, :group, :artifact, :scopes, :version, :parent, :with_sources, :verbose
 
+    @@resolved = [] # already resolved
+    # mapping of common names and abbreviations
     MAPPING = {
       "xerces-impl" => "xercesImpl",
       "jsr94-sigtest" => "jsr94"
     }
     
+    # typical file extensions
     EXTENSIONS = [
       ".pom", ".jar", ".pom.sha1", ".jar.sha1",
       ".zip", ".signature"
@@ -17,6 +20,7 @@ module Kitbuilder
       EXTENSIONS
     end
 
+    # hash of relevant file extensions/types
     RELEVANT_MAPPING = {
       jar: ".jar", jarsha1: ".jar.sha1",
       pom: ".pom", pomsha1: ".pom.sha1",
@@ -195,7 +199,7 @@ module Kitbuilder
         @group = specs.shift
         artifact = specs.shift
         @version = specs.pop # version is always last
-        @scopes = specs
+        @scopes = [specs.pop] rescue nil
 #        puts "@group #{@group.inspect}, artifact #{artifact.inspect}, @scopes  #{@scopes.inspect}, @version #{@version.inspect}"
       else
         STDERR.puts "Unrecognized pomspec >#{pomspec.inspect}<"
@@ -233,12 +237,15 @@ module Kitbuilder
     #
     # String representation
     #
-    def to_s
+    def to_str
       s = "#{@group}:#{@artifact}" + (@version?":#{@version}":"")
+    end
+    def to_s
+      s = self.to_str
       if @optional||@scopes
         s += "<"
         s += "opt:" if @optional
-        s += @scopes.join(",") if @scopes
+        s += @scopes.to_s #        join(",") if @scopes
         s += ">"
       end
       if @parent
@@ -282,7 +289,12 @@ module Kitbuilder
     # - resolve dependencies
     #
     def resolve
-#      puts "Resolving #{self}"
+      s = self.to_str
+      if @@resolved.include? s
+        return
+      end
+      @@resolved << s
+      puts "Resolving #{@@resolved.inspect}"
       # does it exist ?
       cached, result = download_to dirname
       if cached
@@ -291,14 +303,14 @@ module Kitbuilder
         if result.is_a?(::String)
 #          puts "Downloaded to #{result}"
         else
-          puts "Failed download #{self}"
+          puts "Failed download #{s}"
           return
         end
       end
       parse result
       dependencies do |pom|
         pom.parent = self
-#        pom.resolve
+        pom.resolve
       end
     end
   end
