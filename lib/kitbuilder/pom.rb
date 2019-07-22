@@ -196,7 +196,7 @@ module Kitbuilder
         artifact = specs.shift
         @version = specs.pop # version is always last
         @scopes = specs
-        puts "@group #{@group.inspect}, artifact #{artifact.inspect}, @scopes  #{@scopes.inspect}, @version #{@version.inspect}"
+#        puts "@group #{@group.inspect}, artifact #{artifact.inspect}, @scopes  #{@scopes.inspect}, @version #{@version.inspect}"
       else
         STDERR.puts "Unrecognized pomspec >#{pomspec.inspect}<"
       end
