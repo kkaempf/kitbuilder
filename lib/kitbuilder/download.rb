@@ -32,9 +32,9 @@ module Kitbuilder
           puts "#{target} downloaded to #{Dir.pwd} from #{uri}"
           return :downloaded
         rescue OpenURI::HTTPError => e
-          STDERR.puts "*** HTTPError: #{uri} (#{e})"
+          STDERR.puts "*** HTTPError: #{uri} (#{e})" if verbose
         rescue URI::InvalidURIError => e
-          STDERR.puts "*** InvalidURI: #{uri} (#{e})"
+          STDERR.puts "*** InvalidURI: #{uri} (#{e})" if verbose
         end
         nil
       end
