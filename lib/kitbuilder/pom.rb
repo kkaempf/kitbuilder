@@ -129,7 +129,15 @@ module Kitbuilder
         raise
       end
     end
-
+    #
+    # resolve version range
+    #
+    def resolve_range version
+      return nil unless version
+      v = version.split(/[\[\]\(\)\,]/).reject{ |v| v.empty? }
+      # STDERR.puts "Range #{version.inspect} => #{v.inspect}"
+      v[0]
+    end
     def parent= parent
       @parent = parent
     end
@@ -191,12 +199,15 @@ module Kitbuilder
         @version = project.xpath("#{@xmlns}version")[0].text.strip rescue project.xpath("#{@xmlns}parent/#{@xmlns}version")[0].text.strip
         @properties["project.version"] = @version
         properties = project.xpath("#{@xmlns}properties")[0]
-        properties.children.each do |child|
-          case child
-          when Nokogiri::XML::Element
-            @properties[child.name] = child.text.strip
+        if properties
+          properties.children.each do |child|
+            case child
+            when Nokogiri::XML::Element
+              @properties[child.name] = child.text.strip
+            end
           end
         end
+#        dependencies
         @file = pomspec
       when /\.jar/ # File
         dirs = pomspec.to_s.split('/')
@@ -217,6 +228,7 @@ module Kitbuilder
       end
       @artifact = MAPPING[artifact] || artifact
       @properties["project.artifactId"] = @artifact
+      @version = resolve_range @version
     end
     #
     # Compare
@@ -297,7 +309,7 @@ module Kitbuilder
         group = d.xpath("#{@xmlns}groupId")[0].text
         artifact = lookup( d.xpath("#{@xmlns}artifactId")[0].text)
         v = d.xpath("#{@xmlns}version")[0].text rescue nil
-        version = lookup v
+        version = resolve_range(lookup v)
         scope = d.xpath("#{@xmlns}scope")[0].text rescue nil
         optional = d.xpath("#{@xmlns}optional")[0].text rescue nil
         pom = Pom.new( { group: group, artifact: artifact, version: version, scopes: scope, optional: optional } )
