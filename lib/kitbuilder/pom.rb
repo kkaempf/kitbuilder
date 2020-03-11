@@ -306,12 +306,13 @@ module Kitbuilder
     #
     def dependencies
       @xml.xpath("//#{@xmlns}dependency | //#{@xmlns}parent").each do |d|
-        group = d.xpath("#{@xmlns}groupId")[0].text
-        artifact = lookup( d.xpath("#{@xmlns}artifactId")[0].text)
-        v = d.xpath("#{@xmlns}version")[0].text rescue nil
+        group = d.xpath("#{@xmlns}groupId")[0].text.strip rescue d.xpath("#{@xmlns}parent/#{@xmlns}groupId")[0].text.strip rescue nil
+        a = d.xpath("#{@xmlns}artifactId")[0].text rescue nil
+        artifact = lookup( a )
+        v = d.xpath("#{@xmlns}version")[0].text.strip rescue d.xpath("#{@xmlns}parent/#{@xmlns}version")[0].text.strip rescue nil
         version = resolve_range(lookup v)
-        scope = d.xpath("#{@xmlns}scope")[0].text rescue nil
-        optional = d.xpath("#{@xmlns}optional")[0].text rescue nil
+        scope = d.xpath("#{@xmlns}scope")[0].text.strip rescue nil
+        optional = d.xpath("#{@xmlns}optional")[0].text.strip rescue nil
         pom = Pom.new( { group: group, artifact: artifact, version: version, scopes: scope, optional: optional } )
 #        puts "dependency pom #{pom.inspect}"
         yield pom
@@ -329,16 +330,16 @@ module Kitbuilder
         return
       end
       @@resolved << s
-      puts "Resolving #{@@resolved.inspect}"
+#      puts "Resolving #{@@resolved.inspect}"
       # does it exist ?
       cached, result = download_to dirname
       if cached
-        puts "Exists"
+#        puts "Exists"
       else
         if result.is_a?(::String)
 #          puts "Downloaded to #{result}"
         else
-          puts "Failed download #{s}"
+          puts "Failed download #{s}: #{result.inspect}"
           return
         end
       end
