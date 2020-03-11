@@ -1,7 +1,6 @@
 require_relative "repository/repository"
 require_relative "repository/bintray"
 require_relative "repository/jcenter"
-require_relative "repository/central"
 require_relative "repository/gradle"
 require_relative "repository/gradle-releases"
 require_relative "repository/gradle-local"
