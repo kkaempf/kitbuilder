@@ -27,7 +27,7 @@ module Kitbuilder
         :cached 
       else
         begin
-          stream = open(uri)
+          stream = URI.open(uri)
           IO.copy_stream stream, target
           puts "#{target} downloaded to #{Dir.pwd} from #{uri}"
           return :downloaded
