@@ -47,11 +47,11 @@ module Kitbuilder
     #
     # handle pom specification (download)
     #
-    def handle pomspec
+    def handle pomspec, recursive=true
       puts "Handle #{pomspec.inspect}" if @verbose
       pom = Pom.new pomspec
       pom.jar = @jar
-      pom.resolve
+      pom.resolve recursive
     end
     #
     # convert gradle cache to maven cache

@@ -324,7 +324,7 @@ module Kitbuilder
     # - download associated jars
     # - resolve dependencies
     #
-    def resolve
+    def resolve recursive=true
       s = self.to_str
       if @@resolved.include? s
         return
@@ -344,9 +344,11 @@ module Kitbuilder
         end
       end
       parse result
-      dependencies do |pom|
-        pom.parent = self
-        pom.resolve
+      if recursive
+        dependencies do |pom|
+          pom.parent = self
+          pom.resolve
+        end
       end
     end
   end

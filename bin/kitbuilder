@@ -36,12 +36,12 @@ def usage msg = nil
   STDERR.puts "kitbuilder [-D <m2-dir>] [<pomfile>|<pomspec>]"
   STDERR.puts
   STDERR.puts "Options:"
-  STDERR.puts " -D <m2-dir>     directory of maven cache"
+  STDERR.puts " -D <m2-dir>      directory of maven cache"
   STDERR.puts " -s <script-name> strip maven cache from .jars, create <script-name> to re-create them"
-  STDERR.puts " -g <gradle-dir> convert gradle cache to maven cache"
-  STDERR.puts " -b <build.log>  parse build log for missing pom/jar"
-  STDERR.puts " -s <script>  strip jars from <m2-dir>, write <script> to re-create them"
-  STDERR.puts " -v           verbose"
+  STDERR.puts " -g <gradle-dir>  convert gradle cache to maven cache"
+  STDERR.puts " -b <build.log>   parse build log for missing pom/jar"
+  STDERR.puts " -n               non-recursive"
+  STDERR.puts " -v               verbose"
 end
 
 buildlog = nil
@@ -50,9 +50,11 @@ gradledir = nil
 pomdef = nil
 strip_jars = nil
 verbose = nil
+recursive = true
 
 GetoptLong.new(
   [ '-h', '--help', GetoptLong::NO_ARGUMENT ],
+  [ '-n', '--non-recursive', GetoptLong::NO_ARGUMENT ],
   [ '-g', '--gradle', GetoptLong::REQUIRED_ARGUMENT ],
   [ '-D', '--m2dir', GetoptLong::REQUIRED_ARGUMENT ],
   [ '-b', '--buildlog', GetoptLong::REQUIRED_ARGUMENT ],
@@ -73,6 +75,8 @@ GetoptLong.new(
     puts "Removing jars from #{m2dir}"
   when '-v', '--verbose'
     verbose = true
+  when '-n', '--non-recursive'
+    recursive = false
   when '-h', '--help'
     usage
     exit 0
@@ -107,7 +111,7 @@ if buildlog
         next
       end
       puts ".build.log: Found pom #{pom}"
-      kitbuilder.handle pom
+      kitbuilder.handle pom, recursive
     end
   end
 elsif gradledir
@@ -121,5 +125,5 @@ else
   jar = ARGV.shift
   puts "Starting with #{pom}"
   kitbuilder.jar = jar
-  kitbuilder.handle pom
+  kitbuilder.handle pom, recursive
 end
