@@ -35,6 +35,8 @@ module Kitbuilder
           STDERR.puts "*** HTTPError: #{uri} (#{e})" if verbose
         rescue URI::InvalidURIError => e
           STDERR.puts "*** InvalidURI: #{uri} (#{e})" if verbose
+        rescue OpenSSL::SSL::SSLError => e
+          STDERR.puts "*** SSLError: #{uri} (#{e})" if verbose
         end
         nil
       end
