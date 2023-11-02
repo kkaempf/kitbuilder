@@ -2,7 +2,7 @@ require 'open-uri'
 
 module Kitbuilder
   class Download
-    def self.exists? uri
+    def self.exist? uri
       print "#{uri.inspect}\e[K\r" # erase to end of line, back to column 0
       begin
         f = open(uri)
@@ -22,7 +22,7 @@ module Kitbuilder
     #  return :downloaded if downloaded
     #  return nil if not found
     def self.download uri, target, verbose = nil
-      if File.exists?(target)
+      if File.exist?(target)
         puts "#{target} cached in #{Dir.pwd}"
         :cached 
       else
@@ -31,6 +31,8 @@ module Kitbuilder
           IO.copy_stream stream, target
           puts "#{target} downloaded to #{Dir.pwd} from #{uri}"
           return :downloaded
+        rescue SocketError => e
+          STDERR.puts "*** HTTPError: #{uri} (#{e})" if verbose
         rescue OpenURI::HTTPError => e
           STDERR.puts "*** HTTPError: #{uri} (#{e})" if verbose
         rescue URI::InvalidURIError => e
