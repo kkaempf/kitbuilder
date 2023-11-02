@@ -116,7 +116,7 @@ module Kitbuilder
       begin
         File.open(file) do |f|
           begin
-            @xml = Nokogiri::XML(f).root
+            @xml = Nokogiri::XML(f).root or raise "No root element in #{file}"
             namespaces = @xml.namespaces
             @xmlns = (namespaces["xmlns"])?"xmlns:":""
           rescue Exception => e
@@ -343,12 +343,15 @@ module Kitbuilder
           return
         end
       end
-      parse result
-      if recursive
-        dependencies do |pom|
-          pom.parent = self
-          pom.resolve
+      begin
+        parse result
+        if recursive
+          dependencies do |pom|
+            pom.parent = self
+            pom.resolve false
+          end
         end
+      rescue
       end
     end
   end
