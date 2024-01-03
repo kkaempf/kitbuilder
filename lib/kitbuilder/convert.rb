@@ -19,10 +19,13 @@ module Kitbuilder
           pom = Pom.new path
           dir = File.dirname(File.dirname(path))
 #          puts "#{dir}:#{pom.basename}"
-          # now look for jars        
+          # now look for jars or exes
           Find.find(dir) do |local|
-            next unless local =~ /\.jar$/
-            jars << local
+            case local
+            when /\.jar$/
+            when /\.exe$/
+              jars << local
+            end
           end
           dest = File.join(mavendir, pom.dirname)
           FileUtils.mkdir_p dest
