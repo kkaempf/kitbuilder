@@ -92,21 +92,24 @@ if buildlog
       pom = jar = nil
       case l
       # > Could not resolve com.google.http-client:google-http-client-jackson2:1.21.0.
-      when /\> Could not resolve ([^\s]+)\.$/
+      when /\> Could not resolve ([^\s]+)\./
         pom = $1
       # > Could not find com.google.http-client:google-http-client-jackson2:1.21.0.
-      when /\> Could not find ([^\s]+)\.$/
+      when /\> Could not find ([^\s]+)\./
         pom = $1
       # > Could not download junit4-ant.jar (com.carrotsearch.randomizedtesting:junit4-ant:2.5.0): No cached version available for offline mode
-      when /\> Could not download (([^\s]+)\.jar) \(([^\s]+)\)\: No cached version available for offline mode$/
+      when /\> Could not download (([^\s]+)\.jar) \(([^\s]+)\)\: No cached version available for offline mode/
         pom = $3
         kitbuilder.jar = $1
         puts ".build.log: Found jar #{jar}"      
       # > Could not find hadoop-common-tests.jar (org.apache.hadoop:hadoop-common:2.7.1).
-      when /\> Could not find (([^\s]+)\.jar) \(([^\s]+)\)\.$/
+      when /\> Could not find (([^\s]+)\.jar) \(([^\s]+)\)\./
         pom = $3
         kitbuilder.jar = $1
         puts ".build.log: Found jar #{jar}"
+      # No cached version of org.apache.commons:commons-parent:39 available for offline mode.
+      when /\> No cached version of ([^\s]+) available for offline mode\./
+        pom = $1
       else
         next
       end
