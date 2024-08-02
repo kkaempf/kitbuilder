@@ -21,7 +21,7 @@ module Kitbuilder
           # dir: two levels up
           dir = File.dirname(File.dirname(path))
           # caches/modules-2/files-2.1/org.gradle.toolchains/foojay-resolver/0.8.0
-          puts "POM #{dir}:#{pom.basename}"
+          # puts "POM #{dir}:#{pom.basename}"
           # now look for files below caches/modules-2/files-2.1/org.gradle.toolchains/foojay-resolver/0.8.0/...
           Find.find(dir) do |local|
             case local
@@ -34,7 +34,7 @@ module Kitbuilder
           FileUtils.cp path, File.join(dest, "#{pom.basename}.pom")
           files.each do |file|
             name = File.basename(file)
-            puts "DIR #{dir}, file #{file}, name #{name}"
+            # puts "DIR #{dir}, file #{file}, name #{name}"
             FileUtils.cp file, File.join(dest, name)
           end
         when /\.js$/
@@ -46,7 +46,7 @@ module Kitbuilder
           destdirs = dirs.pop(3)
           toplevels = destdirs.shift.split(".")
           dest = File.join(mavendir, (toplevels+destdirs).join("/"))
-          puts "dest #{dest}, js #{js}"
+          # puts "dest #{dest}, js #{js}"
           FileUtils.mkdir_p dest
           FileUtils.cp path, File.join(dest, js)
         end
